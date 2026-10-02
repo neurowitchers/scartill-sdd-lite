@@ -21,6 +21,8 @@ description: "Lightweight Kiro-first specification driven development kit"
 These commands require the `orca-cli` orchestration skill and an available adversarial agent.
 
 - `Handoff Critique` - hand off the critique to an adversarial agent (Antigravity) running in a new Orca terminal, then apply the resulting critique (prompt: `sc.handoff.critique.md`, allowed argument: `--auto`)
+- `Handoff Code Review` - hand off the code review to an adversarial agent (Antigravity) running in a new Orca terminal, then act on the resulting review (prompt: `sc.handoff.code.review.md`, allowed argument: `--auto`)
+- `Autoflow` - polymorphically drive the full pipeline end-to-end and autonomously: plan a full spec from seed(s) if needed, then handoff-critique (`--auto`), split tasks, implement, handoff-code-review (`--auto`), and finalize, committing at each stage (prompt: `sc.autoflow.md`, arguments: free-form user refining notes)
 
 All prompts reside in `<skill-dir>/prompts/`.
 
