@@ -8,7 +8,7 @@ description: "Lightweight Kiro-first specification driven development kit"
 - `Save Spec` - save persistent specification (prompt: `sc.save.spec.md`)
 - `Split Tasks` - create standalone tasks (prompt: `sc.split.tasks.md`)
 - `Implement` - run implementation (prompt: `sc.implement.tasks.md`)
-- `Finalize` - post-implementation actions: update docs and capture deferred items to `docs/feedback/` (prompt: `sc.finalize.md`)
+- `Finalize` - post-implementation actions: update docs, capture deferred items to `docs/feedback/`, and post product-manager guidance to the PR if available (prompt: `sc.finalize.md`)
 - `Critique` - critique specification (prompt: `sc.critique.spec.md`, to file to critique as a parameter)
 - `Code Review` - review implementation (prompt: `sc.code.review.md`)
 - `Archive` - archive older project documentation (prompt: `sc.archive.md`)

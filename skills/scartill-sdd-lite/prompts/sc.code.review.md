@@ -129,13 +129,15 @@ Create review artifact at `./docs/codereviews/pr-<NUMBER>-review.md` :
 **Branch**: <head> → <base>
 **Decision**: APPROVE | REQUEST CHANGES | BLOCK
 
-## Product & User Summary
-- **The "Why" & "What"**: <2–3 sentences describing the user problem solved or business purpose>
-- **Key User-Facing & Behavioral Changes**: <bullet points detailing UX, workflow, config, API, or behavioral changes>
+## QA & Verification Guidance
 - **Risk Assessment & Migration Notes**: <breaking changes, feature flags, required env vars, DB migrations, or rollback considerations>
+- **Behavioral Changes to Verify**: <bullet points of UX, workflow, config, API, or behavioral changes QA should confirm>
 - **Testing Hints for QA**:
-  1. <Explicit scenario 1 stakeholders/QA should verify>
-  2. <Explicit scenario 2 stakeholders/QA should verify>
+  1. <Explicit scenario 1 QA should verify>
+  2. <Explicit scenario 2 QA should verify>
+
+> Note: Product-audience narrative (shipped value, deferred items, next iteration) is
+> **not** part of the review — it is posted separately by the `Finalize` command.
 
 ## Technical Summary
 <1-2 sentence overall technical assessment>
@@ -169,14 +171,13 @@ Create review artifact at `./docs/codereviews/pr-<NUMBER>-review.md` :
 
 ### Phase 7 — PUBLISH
 
-Post the product-focused summary and technical review payload to GitHub. The GitHub review comment MUST include the Product & QA section so Product Managers and QA receive clear, actionable verification guidance:
+Post the QA-focused summary and technical review payload to GitHub. The GitHub review comment MUST include the QA & Verification section so QA receive clear, actionable verification guidance. Product-audience narrative (shipped value, deferred items) is posted separately by `Finalize` — do not duplicate it here:
 
 ```bash
 # Prepare review payload body:
-# ### Product & User Summary
-# - **The "Why" & "What"**: ...
-# - **Key User-Facing & Behavioral Changes**: ...
+# ### QA & Verification Guidance
 # - **Risk Assessment & Migration Notes**: ...
+# - **Behavioral Changes to Verify**: ...
 # - **Testing Hints for QA**:
 #   1. <Scenario 1>
 #   2. <Scenario 2>
@@ -185,13 +186,13 @@ Post the product-focused summary and technical review payload to GitHub. The Git
 # <Summary of critical/high findings or confirmation that validation passed>
 
 # If APPROVE
-gh pr review <NUMBER> --approve --body "<product summary + technical review body>"
+gh pr review <NUMBER> --approve --body "<QA guidance + technical review body>"
 
 # If REQUEST CHANGES
-gh pr review <NUMBER> --request-changes --body "<product summary + required fixes>"
+gh pr review <NUMBER> --request-changes --body "<QA guidance + required fixes>"
 
 # If COMMENT only (draft PR or informational)
-gh pr review <NUMBER> --comment --body "<product summary + review notes>"
+gh pr review <NUMBER> --comment --body "<QA guidance + review notes>"
 ```
 
 For inline comments on specific lines, use the GitHub review comments API:

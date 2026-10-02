@@ -61,3 +61,33 @@ Use relative paths only — do not use absolute paths in the feedback document.
 
 If there are genuinely **no** deferred items, do not create an empty file; instead state
 that nothing was deferred this session.
+
+## 3. Post Product Guidance to the PR
+
+If a PR is available for the current branch, post a **Product Manager–oriented** comment to
+it. This is **not** a review verdict (do not approve, request changes, or block) — it is
+guidance for product managers summarizing what shipped and what is intentionally deferred.
+
+Keep it distinct in audience from the Code Review publish: Code Review posts the technical
+verdict plus QA-oriented testing hints, whereas Finalize posts product-facing guidance.
+
+Detect the PR for the current branch and post a plain comment:
+
+```bash
+# Resolve the PR for the current branch (skip this step if none exists)
+gh pr view --json number,url 2>/dev/null
+
+# Post product guidance as a non-gating comment
+gh pr comment <NUMBER> --body "<product guidance body>"
+```
+
+The comment body should cover:
+
+- **What shipped**: a short, non-technical summary of the delivered value.
+- **Deferred for later**: the high-signal items from the `docs/feedback/` document
+  (what was intentionally left out and why), framed for a product audience.
+- **Suggested next iteration**: which deferred items are candidates to pick up next.
+
+If there is no PR for the current branch, or `gh` is unavailable, skip this step and note
+it — do not block finalization. Use relative paths only when referencing files in the
+comment.

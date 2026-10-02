@@ -32,7 +32,7 @@ The workflow is driven by prompts located in `skills/scartill-sdd-lite/prompts/`
 | **Implement** | `sc.implement.tasks.md` | Orchestrates task implementation using subagents. |
 | **Critique** | `sc.critique.spec.md` | Challenges the specification from Product and Engineering perspectives. Takes the file to critique as parameter. |
 | **Code Review** | `sc.code.review.md` | Reviews pull requests/branches for correctness, type safety, security, and performance. |
-| **Finalize** | `sc.finalize.md` | Post-implementation tasks: updates `README.md`/docs, and captures deferred items for future iterations in `docs/feedback/`. |
+| **Finalize** | `sc.finalize.md` | Post-implementation tasks: updates `README.md`/docs, captures deferred items for future iterations in `docs/feedback/`, and posts product-manager guidance (shipped vs. deferred) to the PR if available. |
 | **Archive** | `sc.archive.md` | Archives documents from `docs/` older than a week to `docs/archive`, preserving structure. |
 
 ### Advanced Commands (Orca-dependent)
