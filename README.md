@@ -35,6 +35,14 @@ The workflow is driven by prompts located in `skills/scartill-sdd-lite/prompts/`
 | **Finalize** | `sc.finalize.md` | Post-implementation tasks such as updating `README.md` and relevant documentation. |
 | **Archive** | `sc.archive.md` | Archives documents from `docs/` older than a week to `docs/archive`, preserving structure. |
 
+### Advanced Commands (Orca-dependent)
+
+These commands require the [`orca-cli`](https://www.onorca.dev/) orchestration skill and an available adversarial agent.
+
+| Command | Prompt | Description |
+|---------|--------|-------------|
+| **Handoff Critique** | `sc.handoff.critique.md` | Uses Orca orchestration to launch an adversarial agent (Antigravity, via `agy`) in a new terminal to run the Critique command against the spec, then applies the resulting critique from `docs/critiques/`. Supports `--auto` to apply automatically once the critique is ready. |
+
 ---
 
 ## File Structure

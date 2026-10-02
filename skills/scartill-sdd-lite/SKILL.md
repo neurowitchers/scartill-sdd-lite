@@ -16,6 +16,12 @@ description: "Lightweight Kiro-first specification driven development kit"
 - `Seed` - convert final brainstorming results to a seed (prompt: `sc.brainstorm.to.seed.md`) 
 - `Gate Input` - sanitize raw input, extract clean seed specs, and generate a PM feedback report (prompt: `sc.gate.input.md`, input document path as parameter)
 
+## Advanced Commands (Orca-dependent)
+
+These commands require the `orca-cli` orchestration skill and an available adversarial agent.
+
+- `Handoff Critique` - hand off the critique to an adversarial agent (Antigravity) running in a new Orca terminal, then apply the resulting critique (prompt: `sc.handoff.critique.md`, allowed argument: `--auto`)
+
 All prompts reside in `<skill-dir>/prompts/`.
 
 Upon activation, remember these commands, but do not run until an explicit user request.
