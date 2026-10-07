@@ -1,7 +1,13 @@
+---
+generated-by: {command that created this task, e.g. "Seed to Task" / "Scaffold Document"}
+source: {relative path or URL of the origin — outline file, seed file/dir; "inline" if pasted inline}
+generated-at: {ISO-8601 timestamp, e.g. 2026-10-07T21:17:53+03:00}
+---
+
 # {Task Name}
 
 - **Task ID:** {e.g. T-CTX-01}
-- **Source:** {outline section → bullet(s) covered}
+- **Covers:** {human-readable scope — outline section → bullet(s), or seed gist}
 - **Location:** {result file path under the task-results directory}
 
 Inputs ready: [ ]

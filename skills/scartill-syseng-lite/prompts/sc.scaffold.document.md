@@ -40,7 +40,7 @@ Create directories as needed. Never overwrite an existing file — create a new 
 
 ### Phase II — Task Generation
 
-4. Generate one task document per unit of granularity, following the confirmed template, into `tasks/`. Assign each a stable task ID and record its source outline location.
+4. Generate one task document per unit of granularity, following the confirmed template, into `tasks/`. Assign each a stable task ID and set its `Covers` field to the human-readable outline scope. Populate the provenance frontmatter: `generated-by: "Scaffold Document"`, `source` as the outline file's relative path, and `generated-at` as the current ISO-8601 timestamp.
 5. Stop and wait for the user to provide inputs to all tasks.
 
 ### Phase III — Dependency Graph

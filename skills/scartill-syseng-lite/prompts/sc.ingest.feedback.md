@@ -77,7 +77,7 @@ Run only after the user confirms. Re-read the adjudicated critique file.
    - `[c]` items the agent still considers worth clarifying;
    - valid critique the user rejected;
    - items left `[ ]` at confirmation (carry forward as explicit discussion points; retain the uncertainty rather than dropping it).
-8. For each `[a]` item, ensure `inbox/` exists and create a new brainstorming task document there, following the project's task template if one exists (`templates/task-template.md`).
+8. For each `[a]` item, ensure `inbox/` exists and create a new brainstorming task document there, following the project's task template if one exists (`templates/task-template.md`). When the template is used, populate the provenance frontmatter: `generated-by: "Ingest Feedback"`, `source` as the feedback document's relative path, and `generated-at` as the current ISO-8601 timestamp.
 
 ## Output
 
