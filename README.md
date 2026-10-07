@@ -4,6 +4,11 @@ A lightweight, Kiro-first specification-driven development (SDD) kit.
 
 This kit provides a structured, prompt-driven workflow for specification-driven development. It helps orchestrate development sessions through stages of brainstorming, spec writing, task decomposition, implementation, critique, code review, and finalization.
 
+This repository ships **two companion skills** under `skills/`:
+
+- **`scartill-sdd-lite`** — the specification-driven development kit documented below.
+- **`scartill-syseng-lite`** — a lightweight systems-engineering companion for structured, human-adjudicated handling of document feedback, critique, and document scaffolding. See [Companion Skill: scartill-syseng-lite](#companion-skill-scartill-syseng-lite).
+
 ## Workflow Overview
 
 The kit uses a multi-stage specification workflow to separate intent from execution details:
@@ -54,6 +59,11 @@ skills/scartill-sdd-lite/
 ├── SKILL.md              # Skill definition with command list and workflow guidance
 └── prompts/              # Prompt templates for each workflow stage
 
+skills/scartill-syseng-lite/
+├── SKILL.md              # Companion systems-engineering skill definition
+├── prompts/              # Prompt templates (Ingest Feedback, Scaffold Document)
+└── templates/            # Default artifact templates (task template)
+
 docs/                     # Specification artifacts (created per-project)
 ├── seed/                 # Initial human-written seed specifications
 ├── specs/                # Full implementation specifications
@@ -69,7 +79,7 @@ docs/                     # Specification artifacts (created per-project)
 
 ## Installation
 
-Copy or symlink the `skills/scartill-sdd-lite` directory into your Kiro skills folder (`~/.kiro/skills/`). The commands will be available in any Kiro CLI session.
+Copy or symlink the skill directories under `skills/` (`scartill-sdd-lite` and, optionally, its companion `scartill-syseng-lite`) into your Kiro skills folder (`~/.kiro/skills/`). The commands will be available in any Kiro CLI session.
 
 ---
 
@@ -83,4 +93,36 @@ Or starting from external input:
 
 ```
 Gate Input → Seed → Save Spec → Critique → Split Tasks → Implement → Code Review → Finalize
+```
+
+---
+
+## Companion Skill: scartill-syseng-lite
+
+A lightweight, Kiro-first systems-engineering companion kit for structured, human-adjudicated handling of document feedback, critique, and document scaffolding. It lives at `skills/scartill-syseng-lite/` and is designed to sit alongside the SDD kit: the SDD kit drives code specifications, while the systems-engineering kit drives narrative documents and their feedback loops.
+
+### Commands
+
+The commands are driven by prompts in `skills/scartill-syseng-lite/prompts/`.
+
+| Command | Prompt | Description |
+|---------|--------|-------------|
+| **Ingest Feedback** | `sc.ingest.feedback.md` | Analyze an input feedback document against a document under critique, produce a human-adjudicated critique with per-item accept flags, then (on confirmation) consolidate the outcome into amendments, deviations, and brainstorming tasks. Parameters: the document under critique and the feedback document. |
+| **Scaffold Document** | `sc.scaffold.document.md` | Decompose a document outline into a granular, human-adjudicated task breakdown, then drive the tasks through preprocessing questions, task work, and consolidation into a first draft with a separate task-to-report mapping. Parameters: the outline file and an optional task template (defaults to `templates/task-template.md`). |
+
+### Conventions
+
+- **Relative paths** in all generated artifacts.
+- **Human adjudication**: the agent proposes, the user decides; it stops at every gate and never advances a user's decision on their behalf.
+- **Traceability**: every input element reaches a definite outcome; nothing is silently dropped.
+- **Retain uncertainty**: unresolved items become explicit discussion points rather than being settled by assumption.
+- **Follow-up sessions**: resume from the current gate and update only the artifacts the active step owns.
+
+### File Structure
+
+```
+skills/scartill-syseng-lite/
+├── SKILL.md              # Companion systems-engineering skill definition
+├── prompts/              # Ingest Feedback, Scaffold Document
+└── templates/            # Default task template
 ```
