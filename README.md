@@ -99,6 +99,8 @@ Gate Input → Seed → Save Spec → Critique → Split Tasks → Implement →
 
 ## Companion Skill: scartill-syseng-lite
 
+*The companion skill is work in progress*
+
 A lightweight, Kiro-first systems-engineering companion kit for structured, human-adjudicated handling of document feedback, critique, and document scaffolding. It lives at `skills/scartill-syseng-lite/` and is designed to sit alongside the SDD kit: the SDD kit drives code specifications, while the systems-engineering kit drives narrative documents and their feedback loops.
 
 ### Commands
