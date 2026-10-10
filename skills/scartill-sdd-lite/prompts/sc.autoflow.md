@@ -2,8 +2,9 @@
 
 Drive the specification-driven development pipeline end-to-end, autonomously, with no
 interactive pauses. Autoflow is **polymorphic**: it inspects the current session and the
-`docs/` tree to determine where in the workflow it should start, then runs forward from
-there to a working, committed implementation.
+`docs/` tree to determine where in the workflow it should start — from a filled-in but
+unprocessed brainstorm, a completed brainstorm, a seed, or a full spec — then runs forward
+from there to a working, committed implementation.
 
 This command depends on the `orca-cli` orchestration skill because it invokes
 `Handoff Critique` with the `--auto` option.
@@ -18,26 +19,72 @@ things to avoid). Incorporate these notes into every planning and spec-refinemen
 
 ## State Detection
 
-Before doing anything, determine the starting state:
+Before doing anything, determine the starting state. Autoflow can enter at several points
+in the pipeline; the states below are ordered **earliest → latest**. Scan the `docs/` tree
+from the most-upstream artifact and **start at the earliest state whose artifact is
+present** — do not skip an unfinished upstream artifact just because a later one also
+exists. From the chosen entry point, Autoflow falls through each subsequent branch to a
+committed implementation.
 
-1. **Full spec, already critiqued** — a full spec exists in `docs/specs/` **and** a critique
+1. **Brainstorm inputs ready, not yet applied** — a brainstorm report exists in
+   `docs/brainstorms/` whose Phase 2 `USER_INPUT` placeholders have been **filled** by the
+   user (the default `[REPLACE THIS TEXT WITH YOUR ANSWER / PREFERENCE]` text is gone), but
+   the report has **not** yet been carried through Phases 3–4 (its `## Recommendation`
+   section is still the empty template). Autoflow resumes the brainstorm from Phase 3.
+2. **Brainstorm done, no seed** — a brainstorm report in `docs/brainstorms/` has a populated
+   `## Recommendation` section (Phases 3–4 completed), but no corresponding seed exists in
+   `docs/seed/`. Autoflow derives a seed from the brainstorm, following its recommendation.
+3. **Seed(s) only** — one or more seed specs exist in `docs/seed/` (produced in this
+   session via `Brainstorm`/`Seed` or `Gate Input`), but no corresponding full spec.
+4. **Full spec, not yet critiqued** — a full spec for the feature under discussion exists in
+   `docs/specs/`, or a full spec was interactively planned in this session, and no critique
+   has been applied yet.
+5. **Full spec, already critiqued** — a full spec exists in `docs/specs/` **and** a critique
    for it has already been produced and reviewed (a critique file exists in
    `docs/critiques/` for this spec, or the user indicates they already ran a critique
    handoff *without* `--auto` and reviewed/applied it themselves). In this state the
    critique step is **skipped** — do not run a second critique pass.
-2. **Full spec, not yet critiqued** — a full spec for the feature under discussion exists in
-   `docs/specs/`, or a full spec was interactively planned in this session, and no critique
-   has been applied yet.
-3. **Seed(s) only** — one or more seed specs exist in `docs/seed/` (produced in this
-   session via `Brainstorm`/`Seed` or `Gate Input`), but no corresponding full spec.
-4. **Neither** — no seed and no full spec relevant to the current work.
+6. **Neither** — no brainstorm, seed, or full spec relevant to the current work.
 
 If the state is **Neither**, stop and tell the user to run `Brainstorm`, `Gate Input`, or
-`Seed` first. Do not guess intent or fabricate a seed.
+`Seed` first. Do not guess intent or fabricate a brainstorm, seed, or spec.
+
+If a brainstorm report exists but its `USER_INPUT` placeholders are **still unfilled** (they
+retain the default placeholder text), treat it as **Neither**: stop and tell the user to
+fill in their answers in `docs/brainstorms/` first. Do not fabricate the user's answers.
 
 When uncertain whether an existing critique is current (e.g. the spec changed after the
 critique), prefer re-running the critique; but if the user explicitly states the critique is
 done, honor that and skip it.
+
+## Branch 4 — Brainstorm inputs ready, not yet applied
+
+If a brainstorm report in `docs/brainstorms/` has its `USER_INPUT` placeholders filled but
+has not been carried through Phases 3–4:
+
+1. **Resume the brainstorm** from Phase 3 (prompt: `sc.brainstorm.md`). Parse the user's
+   answers inside the `USER_INPUT` tags, formulate the architectural approaches, apply the
+   comparative analysis, and deliver the final recommendation and next steps — completing
+   Phases 3 and 4 of the report. Apply the user refining notes. Do not pause for
+   clarification; the user's placeholder answers are the input you act on.
+2. Write the completed `BRAINSTORM_REPORT`-style file back to `docs/brainstorms/`.
+3. **Commit** the finalized brainstorm with a message such as
+   `brainstorm: finalize analysis for <name>`.
+4. Proceed to **Branch 3**.
+
+## Branch 3 — Brainstorm done, no seed
+
+If a brainstorm report has a populated `## Recommendation` section but no corresponding seed
+exists in `docs/seed/`:
+
+1. Run `Seed` (prompt: `sc.brainstorm.to.seed.md`) to transform the brainstorm results into
+   a seed specification, **following the brainstorm's recommended approach** unless the user
+   refining notes specify otherwise. Capture all decisions without the implementation detail
+   of a full spec.
+2. Write the seed to `docs/seed/`.
+3. **Commit** the new seed with a message such as
+   `seed: derive seed from brainstorm for <name>`.
+4. Proceed to **Branch 2**.
 
 ## Branch 2 — Seed(s) only
 

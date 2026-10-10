@@ -22,7 +22,7 @@ These commands require the `orca-cli` orchestration skill and an available adver
 
 - `Handoff Critique` - hand off the critique to an adversarial agent (Antigravity) running in a new Orca terminal, then apply the resulting critique (prompt: `sc.handoff.critique.md`, allowed argument: `--auto`)
 - `Handoff Code Review` - hand off the code review to an adversarial agent (Antigravity) running in a new Orca terminal, then act on the resulting review (prompt: `sc.handoff.code.review.md`, allowed argument: `--auto`)
-- `Autoflow` - polymorphically drive the full pipeline end-to-end and autonomously: plan a full spec from seed(s) if needed, then handoff-critique (`--auto`), split tasks, implement, handoff-code-review (`--auto`), and finalize, committing at each stage (prompt: `sc.autoflow.md`, arguments: free-form user refining notes)
+- `Autoflow` - polymorphically drive the full pipeline end-to-end and autonomously: starting from the earliest available artifact — a filled-in brainstorm awaiting Phase 3–4, a completed brainstorm with no seed, seed(s), or a full spec — finalize the brainstorm and/or derive a seed if needed, plan a full spec, then handoff-critique (`--auto`), split tasks, implement, handoff-code-review (`--auto`), and finalize, committing at each stage (prompt: `sc.autoflow.md`, arguments: free-form user refining notes)
 
 All prompts reside in `<skill-dir>/prompts/`.
 
