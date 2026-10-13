@@ -15,7 +15,7 @@ The kit uses a multi-stage specification workflow to separate intent from execut
 
 1. **Brainstorming**: Structured technical exploration of a problem, producing a research report with options and trade-offs.
 2. **Seed Specs (`docs/seed/`)**: Concise, human-written documents capturing core user intent, high-level CLI/config shape, and expected behavior.
-3. **Full Specs (`docs/specs/`)**: Actionable implementation blueprints derived from seed specs, complete with requirements, background, technical designs, and a detailed task breakdown.
+3. **Full Specs (`docs/specs/`)**: Actionable implementation blueprints derived from seed specs, complete with requirements, background, technical designs, and a detailed task breakdown. The **Plan Spec** command drives this expansion through a persistent, iterative questionnaire file (`docs/plans/`) rather than interactive in-terminal questioning.
 4. **Task Splitting**: Full specs are split into individual tasks (`docs/tasks/`) for parallel or sequential execution.
 5. **Implementation**: Executing the tasks using subagents.
 6. **Critique & Review**: Challenging specifications and reviewing resulting pull requests.
@@ -32,6 +32,7 @@ The workflow is driven by prompts located in `skills/scartill-sdd-lite/prompts/`
 | **Gate Input** | `sc.gate.input.md` | Sanitizes raw input, extracts clean seed specs, and generates a PM feedback report. Takes an input document path as parameter. |
 | **Brainstorm** | `sc.brainstorm.md` | Conducts a rigorous, structured technical brainstorming session. Takes the problem to consider as parameter. |
 | **Seed** | `sc.brainstorm.to.seed.md` | Converts final brainstorming results into a seed specification. |
+| **Plan Spec** | `sc.plan.spec.md` | Expands seed(s) into a full spec via a persistent, iterative questionnaire file (`docs/plans/<spec-name>.questions.md`), gathering clarifications through file edits instead of interactive in-terminal questioning. Optional parameters: a seed path and/or free-form refining notes. |
 | **Save Spec** | `sc.save.spec.md` | Saves a persistent specification to `docs/specs` before implementation. |
 | **Split Tasks** | `sc.split.tasks.md` | Decomposes the final specification into individual tasks under `docs/tasks/<spec-name>/`. |
 | **Implement** | `sc.implement.tasks.md` | Orchestrates task implementation using subagents. |
@@ -66,6 +67,7 @@ skills/scartill-syseng-lite/
 
 docs/                     # Specification artifacts (created per-project)
 ├── seed/                 # Initial human-written seed specifications
+├── plans/                # Persistent planning questionnaires (Plan Spec: <spec-name>.questions.md)
 ├── specs/                # Full implementation specifications
 ├── tasks/                # Detailed task files (per-spec subdirectories)
 ├── brainstorms/          # Brainstorming research reports
@@ -86,13 +88,13 @@ Copy or symlink the skill directories under `skills/` (`scartill-sdd-lite` and, 
 ## Typical Workflow
 
 ```
-Brainstorm → Seed → Save Spec → Critique → Split Tasks → Implement → Finalize
+Brainstorm → Seed → Plan Spec → Save Spec → Critique → Split Tasks → Implement → Finalize
 ```
 
 Or starting from external input:
 
 ```
-Gate Input → Seed → Save Spec → Critique → Split Tasks → Implement → Code Review → Finalize
+Gate Input → Seed → Plan Spec → Save Spec → Critique → Split Tasks → Implement → Code Review → Finalize
 ```
 
 ---
