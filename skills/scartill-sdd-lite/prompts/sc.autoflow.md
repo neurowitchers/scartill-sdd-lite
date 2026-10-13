@@ -49,7 +49,7 @@ If a brainstorm report has a populated `## Recommendation` section but no corres
 
 If only seed(s) are available (and no full spec yet):
 
-1. Perform **non-interactive planning** to expand the seed(s) into a Full Spec, following the skill's "Seed vs Full Specs" guidance and the `Plan Spec` prompt (`sc.plan.spec.md`). Produce a complete implementation blueprint (problem statement, requirements, background, proposed solution, task breakdown). Apply the user refining notes. **Run Plan Spec in non-interactive mode:** write the questionnaire to `docs/plans/<spec-name>.questions.md` for traceability, then — instead of stopping at the questionnaire gate — immediately apply each question's recorded **Recommended default**, mark it `default-applied`, and record those decisions in the spec's Resolved Decisions section. Do not pause for clarification; make reasonable, well-documented assumptions.
+1. Perform **non-interactive planning** to expand the seed(s) into a Full Spec, following the skill's "Seed vs Full Specs" guidance and the `Plan Spec` prompt (`sc.plan.spec.md`). Produce a concise, critique-ready blueprint: problem statement, requirements and acceptance criteria, background, proposed solution, Testing & Risk Strategy, and ordered task outlines. Apply the user refining notes. **Run Plan Spec in non-interactive mode:** write the questionnaire to `docs/plans/<spec-name>.questions.md` for traceability, then — instead of stopping at the questionnaire gate — immediately apply each question's recorded **Recommended default**, mark it `default-applied`, and record those decisions in the spec's Resolved Decisions section. Do not pause for clarification; make reasonable, well-documented assumptions.
 2. Save the Full Spec to `docs/specs/` (equivalent to `Save Spec`).
 3. **Commit** the new full spec with a message such as `spec: plan full spec for <spec-name>`.
 4. Proceed to **Branch 1**.
@@ -59,17 +59,19 @@ If only seed(s) are available (and no full spec yet):
 If a full spec was interactively planned or already exists:
 
 1. Ensure the spec is saved to `docs/specs/` (call `Save Spec` if it has not been saved).
-2. **Critique (skip if already critiqued).** If the spec has **not** yet been critiqued, run `Handoff Critique --auto` (prompt: `sc.handoff.critique.md`) — this hands the spec to an adversarial agent via Orca and applies the resulting critique automatically once ready — then **commit** the critiqued spec with a message such as `spec: apply critique for <spec-name>`.
+2. **Specification-level critique (skip if already critiqued).** If the spec has **not** yet been critiqued, run `Handoff Critique --auto` (prompt: `sc.handoff.critique.md`) — this hands the spec to an adversarial agent via Orca and applies the resulting critique automatically once ready — then **commit** the critiqued spec with a message such as `spec: apply critique for <spec-name>`.
 
 If the state is **Full spec, already critiqued** (the user already ran a critique handoff without `--auto` and reviewed it, or a current critique already exists in `docs/critiques/`), **skip** this step and proceed directly to Split Tasks. If the user already applied and committed the critique, there is nothing to commit here.
-3. Run `Split Tasks` (prompt: `sc.split.tasks.md`) to decompose the spec into `docs/tasks/<spec-name>/`.
+3. Run the **mandatory** `Split Tasks` command (prompt: `sc.split.tasks.md`) to generate the authoritative execution-detail set in `docs/tasks/<spec-name>/`, including `summary.md`. Do not proceed to implementation from the Full Spec alone.
 4. **Commit** the task breakdown with a message such as `tasks: split <spec-name> into tasks`.
-5. Run `Implement` (prompt: `sc.implement.tasks.md`) to execute the tasks via subagents, using the `summary.md` for parallelization guidance.
-6. **Commit** the implementation with a message such as `feat: implement <spec-name>`.
-7. Run `Handoff Code Review --auto` (prompt: `sc.handoff.code.review.md`). This hands the implemented changes to an adversarial agent via Orca and applies the actionable (`CRITICAL`/`HIGH`) findings automatically once the review is ready.
-8. **Commit** the review fixes with a message such as `fix: apply code review for <spec-name>`. (Skip this commit if the review produced no changes.)
-9. Run `Finalize` (prompt: `sc.finalize.md`) to update `README.md`/docs, capture deferred items to `docs/feedback/`, and post product-manager guidance to the PR if available.
-10. **Commit** the finalization with a message such as `docs: finalize <spec-name>`. (Skip this commit if there was nothing to update.)
+5. **Required Autoflow task-level critique.** Run `Handoff Critique --task-level --auto` (prompt: `sc.handoff.critique.md`) against both `docs/specs/<spec-name>.md` and `docs/tasks/<spec-name>/`. This second pass is required for Autoflow only, never for the manual flow. Apply only 🎯 Must-Address findings automatically, targeting task files by default and changing the spec only when the finding changes its intent, architecture, acceptance criteria, or Testing & Risk Strategy. Preserve 💡 Recommendations and 🤔 Questions in the critique report for human review.
+6. **Commit** the task-level critique report and any applied planning-artifact fixes with a message such as `tasks: apply task-level critique for <spec-name>`. If a current task-level critique has already been auto-applied to the latest task set, do not rerun it; commit only if the existing report or artifacts remain uncommitted.
+7. Run `Implement` (prompt: `sc.implement.tasks.md`) to execute the critiqued task files via subagents, using the `summary.md` for parallelization guidance.
+8. **Commit** the implementation with a message such as `feat: implement <spec-name>`.
+9. Run `Handoff Code Review --auto` (prompt: `sc.handoff.code.review.md`). This hands the implemented changes to an adversarial agent via Orca and applies the actionable (`CRITICAL`/`HIGH`) findings automatically once the review is ready.
+10. **Commit** the review fixes with a message such as `fix: apply code review for <spec-name>`. (Skip this commit if the review produced no changes.)
+11. Run `Finalize` (prompt: `sc.finalize.md`) to update `README.md`/docs, capture deferred items to `docs/feedback/`, and post product-manager guidance to the PR if available.
+12. **Commit** the finalization with a message such as `docs: finalize <spec-name>`. (Skip this commit if there was nothing to update.)
 
 ## Operating Constraints
 

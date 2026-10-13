@@ -63,10 +63,16 @@ Execute in sequential phases. The questionnaire file is the single gate between 
 
 ### Phase 4: Produce the Full Spec
 
-1. Expand the seed(s) into a complete Full Spec at `docs/specs/<spec-name>.md`, honoring every resolved answer, applied default, and refining note. Follow the Full Spec structure from the skill guidance: Problem Statement, Requirements (exhaustive acceptance criteria), Background (codebase internals), Proposed Solution (architecture, Mermaid diagrams, data models, code sketches), and a numbered Task Breakdown (objective, implementation guidance, test requirements, demo command per task).
-2. Include a **Resolved Decisions** section that traces each decision back to its question id (or marks it `default-applied`), so the spec is auditable against the questionnaire.
-3. Do **not** implement. Save the spec only (equivalent to `Save Spec`). Switch to an execution agent later if needed.
-4. Give a concise terminal summary: the spec path, how many questions were answered vs.  defaulted, and any decisions taken by default that the user may want to revisit.
+1. Expand the seed(s) into a concise but critique-ready Full Spec at `docs/specs/<spec-name>.md`, honoring every resolved answer, applied default, and refining note. Use this structure:
+   - **Problem Statement** and **Requirements**, including exhaustive, user-observable acceptance criteria.
+   - **Background**: relevant codebase internals, constraints, and established patterns.
+   - **Proposed Solution**: architectural boundaries, data flows, interfaces, decisions, Mermaid diagrams, and only code sketches needed to explain the design.
+   - **Testing & Risk Strategy**: critical paths, acceptance-layer coverage, meaningful edge/failure cases, test levels, test-data needs, security/performance/operational risks, and mitigations. This is the layer the required pre-split critique reviews.
+   - **Task Outline**: ordered task objectives, dependencies, and intended outcomes only. Do not include per-task file lists, implementation recipes, fixtures, assertions, demo commands, or parallelization instructions.
+2. Treat `Split Tasks` as mandatory before implementation. It is the sole generator and source of truth for detailed task files under `docs/tasks/<spec-name>/`: per-task implementation guidance, exact files/patterns, test requirements, fixtures/assertions, demo commands, and orchestration/parallelization detail.
+3. Include a **Resolved Decisions** section that traces each decision back to its question id (or marks it `default-applied`), so the spec is auditable against the questionnaire.
+4. Do **not** implement. Save the spec only (equivalent to `Save Spec`). Switch to an execution agent later if needed.
+5. Give a concise terminal summary: the spec path, how many questions were answered vs. defaulted, and any decisions taken by default that the user may want to revisit.
 
 ---
 
