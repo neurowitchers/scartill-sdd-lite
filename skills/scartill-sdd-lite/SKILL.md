@@ -18,7 +18,7 @@ description: "Lightweight Kiro-first specification driven development kit"
 
 ## Advanced Commands (Orca-dependent)
 
-These commands require the `orca-cli` orchestration skill and an available adversarial agent.
+These commands require the `/orchestration` skill and an available adversarial agent.
 
 - `Handoff Critique` - hand off the critique to an adversarial agent (Antigravity) running in a new Orca terminal, then apply the resulting critique (prompt: `sc.handoff.critique.md`, allowed argument: `--auto`)
 - `Handoff Code Review` - hand off the code review to an adversarial agent (Antigravity) running in a new Orca terminal, then act on the resulting review (prompt: `sc.handoff.code.review.md`, allowed argument: `--auto`)
