@@ -31,6 +31,7 @@ Legend for human input blocks:
 - `[c]` - invalid but may need additional clarification;
 - `[a]` - requires separate brainstorming;
 - `[r]` - reject completely, no action needed
+- `[d]` - flag as deferred, carry over to next phases
 - `[ ]` - pending: awaiting user decision (default state).
 ```
 
@@ -69,7 +70,7 @@ Accept: [ ]
 
 ### Phase II — Consolidation
 
-Run only after the user confirms. Re-read the adjudicated critique file.
+Run only after the user confirms. Re-read the adjudicated critique file. If there are open (`[ ]`) items, stop and require the user to decide.
 
 6. Amend the **document under critique** based on accepted feedback (`[x]`, and the valid portion of `[p]`).
 7. Ensure `feedback/` exists. Consolidate residual items into a new deviations document there. Residual items are:
