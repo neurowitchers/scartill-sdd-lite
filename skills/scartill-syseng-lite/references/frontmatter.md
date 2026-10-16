@@ -88,7 +88,7 @@ A critique is the structured, human-adjudicated analysis of a document under cri
 ```yaml
 ---
 status: new                               # new | applied
-target: ../report/document.md             # relative path to the document under critique
+target: ../results/document.md            # relative path to the document under critique
 target-revision:                          # git commit hash of the target when the critique was written; blank if uncommitted
 ---
 ```

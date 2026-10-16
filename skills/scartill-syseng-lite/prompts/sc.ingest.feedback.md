@@ -20,6 +20,10 @@ If either parameter is missing, ask the user before proceeding.
 - **RELATIVE PATHS**: Do not use absolute paths when referencing files in generated artifacts. Use relative paths only.
 - **ISOLATION**: Do not consult other existing critique files. Each ingestion pass is analyzed independently to avoid cross-contamination.
 
+## Working Directories
+
+This command writes into the canonical **Workspace layout** (`SKILL.md`): critiques → `critiques/`, deviations → `feedback/`, brainstorming tasks → `tasks/`. Create these lazily under the document workspace; never overwrite. The feedback document and the document under critique are typically imported copies under the import-only `inputs/` — treat anything under `inputs/` as read-only (amend via an instruction to the source owner, never in place).
+
 ## Flag Legend
 
 Include this legend at the top of the critique file. Flags are set by the user in the `Accept` block of each item.
@@ -90,7 +94,7 @@ Run only after the user confirms. Re-read the adjudicated critique file. If ther
    - `[c]` items the agent still considers worth clarifying;
    - valid critique the user rejected;
    - items left `[ ]` at confirmation (carry forward as explicit discussion points; retain the uncertainty rather than dropping it).
-8. For each `[a]` item, ensure `inbox/` exists and create a new brainstorming task document there, following the project's task template if one exists (`templates/task-template.md`). When the template is used, populate the task frontmatter per the canonical schema (`references/frontmatter.md`, artifact type: task): `generated-by: "Ingest Feedback"`, `source` as the feedback document's relative path, `generated-at` as the current ISO-8601 timestamp, and `status: not-started`.
+8. For each `[a]` item, ensure `tasks/` exists and create a new brainstorming task document there, following the project's task template if one exists (`templates/task-template.md`). When the template is used, populate the task frontmatter per the canonical schema (`references/frontmatter.md`, artifact type: task): `generated-by: "Ingest Feedback"`, `source` as the feedback document's relative path, `generated-at` as the current ISO-8601 timestamp, and `status: not-started`.
 
 ## Output
 

@@ -2,7 +2,7 @@
 
 ## Goal
 
-Turn a **document outline** into a granular, human-adjudicated task breakdown, then drive those tasks through to a consolidated first draft. The outline is decomposed into individually scoped tasks so the user can supply thoughts and inputs for each; the agent preprocesses tasks into targeted questions, works each task on confirmation, and folds the results into a single draft with a separate task-to-report mapping. This keeps the draft traceable: every outline element maps to a task, and every task maps to a documented place in the report.
+Turn a **document outline** into a granular, human-adjudicated task breakdown, then drive those tasks through to a consolidated first draft. The outline is decomposed into individually scoped tasks so the user can supply thoughts and inputs for each; the agent preprocesses tasks into targeted questions, works each task on confirmation, and folds the results into a single draft with a separate task-to-results mapping. This keeps the draft traceable: every outline element maps to a task, and every task maps to a documented place in the consolidated document.
 
 ## Parameters
 
@@ -14,23 +14,20 @@ If the outline file is missing, ask the user before proceeding.
 ## Operating Constraints
 
 - **HUMAN ADJUDICATION**: The agent proposes; the user decides. Confirm the template and the task granularity with the user before generating tasks. Wait for the user at every gate; never advance a gate on the user's behalf.
-- **TRACEABILITY**: Every outline element reaches a definite task, and every task reaches a definite place in the report. Nothing is silently dropped. The report-to-task mapping is documented separately.
+- **TRACEABILITY**: Every outline element reaches a definite task, and every task reaches a definite place in the consolidated document. Nothing is silently dropped. The document-to-task mapping is documented separately.
 - **RELATIVE PATHS**: Do not use absolute paths when referencing files in generated artifacts. Use relative paths only.
-- **RETAIN UNCERTAINTY**: Unanswered questions become explicit discussion points in the report rather than being resolved by assumption.
+- **RETAIN UNCERTAINTY**: Unanswered questions become explicit discussion points in the consolidated document rather than being resolved by assumption.
 - **MULTIPLE CHOICE FIRST**: When generating questions for the user, prefer multiple-choice questions. Avoid open questions where possible.
 
 ## Working Directories
 
-Establish a working root for the document (ask the user if not evident from the outline location). Under it:
-
-- Tasks → `tasks/`
-- Task results → `task-results/`
-- Questions with answer placeholders → `quest/`
-- Report and task-to-report mapping → `report/`
-
-Create directories as needed. Never overwrite an existing file — create a new one with a sequence suffix if a name would collide.
+Establish a working root (the **document workspace**) for the document — ask the user if it is not evident from the outline location. The directory shape is the canonical **Workspace layout** defined in `SKILL.md`; this command uses `inputs/`, `seed/`, `tasks/`, `task-results/`, `quest/`, and `results/`. Create directories lazily; never overwrite an existing file — create a new one with a sequence suffix if a name would collide.
 
 ## Steps
+
+### Phase 0 — Workspace Scaffolding
+
+0. Scaffold the workspace skeleton per the **Workspace layout** (`SKILL.md`): create the canonical directories this flow uses (`inputs/`, `seed/`, `tasks/`, `task-results/`, `quest/`, `results/`); write the initial `README.md` by copying `templates/workspace-readme.md` to `<workspace>/README.md` (replace `{workspace}` and `{title}`, fill the one-line purpose); and drop the import-only guardrail into `inputs/` by copying `templates/inputs-agents.md` to `<workspace>/inputs/AGENTS.md` with the `{workspace}` placeholder replaced by the workspace directory name. Skip anything that already exists; never overwrite.
 
 ### Phase I — Template and Granularity
 
@@ -50,7 +47,7 @@ Create directories as needed. Never overwrite an existing file — create a new 
 ### Phase IV — Preprocessing Questions
 
 7. Use subagents to preprocess each task and generate questions for the user, written with answer placeholders into `quest/`. Limit to multiple-choice questions; avoid open questions where possible.
-8. Stop and wait for the user to confirm the answers are ready. Some questions may remain unanswered — carry these forward as explicit discussion points and retain the uncertainty in the report.
+8. Stop and wait for the user to confirm the answers are ready. Some questions may remain unanswered — carry these forward as explicit discussion points and retain the uncertainty in the consolidated document.
 
 ### Phase V — Task Work
 
@@ -58,8 +55,8 @@ Create directories as needed. Never overwrite an existing file — create a new 
 
 ### Phase VI — Consolidation
 
-10. Consolidate the first draft of the document into `report/`. The report must not reference tasks or their identifiers. Give the consolidated draft the **result** frontmatter from the canonical schema (`references/frontmatter.md`): `export-target`, `export-location`, `last-export-revision`, and `last-export-timestamp`, all left blank until the document is exported.
-11. Document the mapping between tasks and the report in a separate file under `report/`.
+10. Consolidate the first draft of the document into `results/`. The consolidated document must not reference tasks or their identifiers. Give it the **result** frontmatter from the canonical schema (`references/frontmatter.md`): `export-target`, `export-location`, `last-export-revision`, and `last-export-timestamp`, all left blank until the document is exported.
+11. Document the mapping between tasks and the consolidated document in a separate file under `results/`.
 
 ## Output
 
@@ -67,8 +64,8 @@ Create directories as needed. Never overwrite an existing file — create a new 
 - Task dependency summary → `tasks/summary.md`.
 - Questions with answer placeholders → `quest/`.
 - Task results → `task-results/`.
-- Consolidated draft → `report/`.
-- Task-to-report mapping → `report/` (separate file; the report itself carries no task references).
+- Consolidated draft → `results/`.
+- Task-to-results mapping → `results/` (separate file; the consolidated document itself carries no task references).
 
 ## Follow-up Sessions
 
