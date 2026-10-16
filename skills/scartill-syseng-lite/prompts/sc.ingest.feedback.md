@@ -37,6 +37,18 @@ Legend for human input blocks:
 
 `[ ]` means *not yet decided*, never "disregard".
 
+## Critique Frontmatter
+
+The critique document carries YAML frontmatter per the canonical schema (`references/frontmatter.md`, artifact type: critique):
+
+```yaml
+---
+status: new                       # new on creation; set to applied after consolidation
+target: <relative path to the document under critique>
+target-revision: <git commit hash of the target when the critique was written; blank if uncommitted>
+---
+```
+
 ## Critique Item Format
 
 ```text
@@ -65,20 +77,20 @@ Accept: [ ]
    - assign each item an ID and its source location in the document under critique;
    - add the agent assessment (validity, recommendation accept/reject/defer, proposed change/additions).
 3. For each item, add an `Accept: [ ]` flag and a `>` comment placeholder, following the Critique Item Format.
-4. Ensure `critiques/` exists (create if necessary). Write the critique document there. If a critique file already exists, do not overwrite — create a new file with a pass/sequence suffix (e.g. `ingest-feedback-01.md`).
+4. Ensure `critiques/` exists (create if necessary). Write the critique document there with the Critique Frontmatter (`status: new`, `target` set to the document under critique's relative path, `target-revision` set to the target's current git commit hash or left blank if uncommitted). If a critique file already exists, do not overwrite — create a new file with a pass/sequence suffix (e.g. `ingest-feedback-01.md`).
 5. Stop and wait for the user to set flags and comments. Do not proceed to Phase II until the user confirms the critique is adjudicated.
 
 ### Phase II — Consolidation
 
 Run only after the user confirms. Re-read the adjudicated critique file. If there are open (`[ ]`) items, stop and require the user to decide.
 
-6. Amend the **document under critique** based on accepted feedback (`[x]`, and the valid portion of `[p]`).
+6. Amend the **document under critique** based on accepted feedback (`[x]`, and the valid portion of `[p]`). After amending, set the critique's frontmatter `status` to `applied`.
 7. Ensure `feedback/` exists. Consolidate residual items into a new deviations document there. Residual items are:
    - the not-accepted portion of `[p]`;
    - `[c]` items the agent still considers worth clarifying;
    - valid critique the user rejected;
    - items left `[ ]` at confirmation (carry forward as explicit discussion points; retain the uncertainty rather than dropping it).
-8. For each `[a]` item, ensure `inbox/` exists and create a new brainstorming task document there, following the project's task template if one exists (`templates/task-template.md`). When the template is used, populate the provenance frontmatter: `generated-by: "Ingest Feedback"`, `source` as the feedback document's relative path, and `generated-at` as the current ISO-8601 timestamp.
+8. For each `[a]` item, ensure `inbox/` exists and create a new brainstorming task document there, following the project's task template if one exists (`templates/task-template.md`). When the template is used, populate the task frontmatter per the canonical schema (`references/frontmatter.md`, artifact type: task): `generated-by: "Ingest Feedback"`, `source` as the feedback document's relative path, `generated-at` as the current ISO-8601 timestamp, and `status: not-started`.
 
 ## Output
 

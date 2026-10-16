@@ -40,7 +40,7 @@ Create directories as needed. Never overwrite an existing file — create a new 
 
 ### Phase II — Task Generation
 
-4. Generate one task document per unit of granularity, following the confirmed template, into `tasks/`. Assign each a stable task ID and set its `Covers` field to the human-readable outline scope. Populate the provenance frontmatter: `generated-by: "Scaffold Document"`, `source` as the outline file's relative path, and `generated-at` as the current ISO-8601 timestamp.
+4. Generate one task document per unit of granularity, following the confirmed template, into `tasks/`. Assign each a stable task ID and set its `Covers` field to the human-readable outline scope. Populate the task frontmatter per the canonical schema (`references/frontmatter.md`, artifact type: task): `generated-by: "Scaffold Document"`, `source` as the outline file's relative path, `generated-at` as the current ISO-8601 timestamp, and `status: not-started`.
 5. Stop and wait for the user to provide inputs to all tasks.
 
 ### Phase III — Dependency Graph
@@ -58,7 +58,7 @@ Create directories as needed. Never overwrite an existing file — create a new 
 
 ### Phase VI — Consolidation
 
-10. Consolidate the first draft of the document into `report/`. The report must not reference tasks or their identifiers.
+10. Consolidate the first draft of the document into `report/`. The report must not reference tasks or their identifiers. Give the consolidated draft the **result** frontmatter from the canonical schema (`references/frontmatter.md`): `export-location`, `last-export-revision`, and `last-export-timestamp`, all left blank until the document is exported.
 11. Document the mapping between tasks and the report in a separate file under `report/`.
 
 ## Output

@@ -37,11 +37,11 @@ This preserves uncertainty as a visible discussion point. Agent-inferred content
 1. Gather the seed. If supplied as a path, read the file or directory; if inline, use the pasted text; if both, treat them together.
 2. Read the task template. If a template parameter was supplied, read it; otherwise use the skill default `templates/task-template.md`.
 3. Assess scope. By default, produce one task. If the seed plainly contains several distinct, separable units of work, propose a split to the user and wait for confirmation before writing. Otherwise, proceed directly.
-4. Map seed fragments to template fields, preserving the user's wording where it fits. Assign the task a stable task ID and set its `Covers` field to a human-readable scope summary. Populate the provenance frontmatter: `generated-by: "Seed to Task"`, `source` as the seed's relative path (or `"inline"` for pasted text, or both when both are given), and `generated-at` as the current ISO-8601 timestamp.
-5. For every template field with no seed material, write the open-question marker from Uncovered Fields. Leave `[ ]` flags and `Status` at their default (initial) values.
+4. Map seed fragments to template fields, preserving the user's wording where it fits. Assign the task a stable task ID and set its `Covers` field to a human-readable scope summary. Populate the task frontmatter per the canonical schema (`references/frontmatter.md`, artifact type: task): `generated-by: "Seed to Task"`, `source` as the seed's relative path (or `"inline"` for pasted text, or both when both are given), `generated-at` as the current ISO-8601 timestamp, and `status: not-started`.
+5. For every template field with no seed material, write the open-question marker from Uncovered Fields. Leave the frontmatter adjudication flags (`inputs-ready`, `completed`) and `status` at their default (initial) values.
 6. Ensure `tasks/` exists under the working root (ask the user for the working root if it is not evident from the seed location). Write the task document(s) there. Never overwrite an existing file — if a name would collide, create a new one with a sequence suffix.
 7. Report what was written: the task file path(s), the task ID(s), and a list of the uncovered fields left as open questions so the user knows what still needs their input.
-8. Mark the seed frontmatter as `comsumed: true` and add a timestamp.
+8. Mark the seed frontmatter as `consumed: true` and set `consumed-at` to the current ISO-8601 timestamp (seed schema in `references/frontmatter.md`).
 
 ## Output
 

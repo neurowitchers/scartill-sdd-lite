@@ -1,7 +1,11 @@
+<!-- Frontmatter conforms to the canonical schema in ../references/frontmatter.md (artifact type: task). -->
 ---
 generated-by: {command that created this task, e.g. "Seed to Task" / "Scaffold Document"}
-source: {relative path or URL of the origin — outline file, seed file/dir; "inline" if pasted inline}
+source: {relative path of the origin — outline file, seed file/dir; "inline" if pasted inline}
 generated-at: {ISO-8601 timestamp, e.g. 2026-10-07T21:17:53+03:00}
+inputs-ready: false
+completed: false
+status: not-started
 ---
 
 # {Task Name}
@@ -10,15 +14,13 @@ generated-at: {ISO-8601 timestamp, e.g. 2026-10-07T21:17:53+03:00}
 - **Covers:** {human-readable scope — outline section → bullet(s), or seed gist}
 - **Location:** {result file path under the task-results directory}
 
-Inputs ready: [ ]
-Completion flag: [ ]
-
 **Status:** `not-started`
 
-> **Progress marker.** `Status` is the single "we are here" indicator — one current value, named so the state is unambiguous across sessions and to the team. Vocabulary (sequential):
+> **Progress marker.** This line mirrors the frontmatter `status` key for in-body readability; the frontmatter key is authoritative. `status` is the single "we are here" indicator — one current value, named so the state is unambiguous across sessions and to the team. Vocabulary (sequential):
 > `not-started` → `in-progress` → `awaiting-user` → `done`; plus `deferred` / `blocked` as needed.
 > For **multi-phase tasks**, expand the middle with phase-named states, e.g. `phase1-drafting` → `phase1-awaiting-selection` → `phase2-drafting` → `phase2-awaiting-decisions` → `folding` → `phase3-verifying` → `done`.
-> The **agent** advances `Status` when it finishes an agent step and stops at a gate; the value names what the agent is waiting for (e.g. `awaiting-user` / `phase1-awaiting-selection`). The user need not edit it — a user reply at a gate is the signal to advance.
+> The **agent** advances `status` when it finishes an agent step and stops at a gate; the value names what the agent is waiting for (e.g. `awaiting-user` / `phase1-awaiting-selection`). The user need not edit it — a user reply at a gate is the signal to advance.
+> See `../references/frontmatter.md` for the authoritative definition.
 
 ## Background
 
