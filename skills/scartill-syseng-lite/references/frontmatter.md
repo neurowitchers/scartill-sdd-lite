@@ -1,15 +1,32 @@
 # Frontmatter Reference
 
-This is the **canonical schema** for YAML frontmatter across all systems-engineering artifacts produced or consumed by this skill (and by the companion `gdrive-export` skill). Every prompt and template in this kit defers to this document; where a prompt names a frontmatter field, the definition here is authoritative. If a prompt and this reference disagree, this reference wins.
+This is the **canonical schema** for YAML frontmatter across all systems-engineering artifacts produced or consumed by this skill (and by any companion transport skill that imports or exports them). Every prompt and template in this kit defers to this document; where a prompt names a frontmatter field, the definition here is authoritative. If a prompt and this reference disagree, this reference wins.
 
 ## Principles
 
 - **One schema per artifact type.** Each artifact type (seed, task, critique, result) has a fixed set of frontmatter keys. Do not invent per-document keys.
 - **Lifecycle state lives in frontmatter; progress narration lives in the body.** Frontmatter carries machine-readable lifecycle and provenance; the body carries human prose, flags, and open questions.
 - **Retain uncertainty.** An unknown value is left blank (not guessed). A blank is a visible discussion point, never an assumption.
-- **Relative paths.** All path-valued fields use repository-relative paths, never absolute paths. The sole exception is `export-location`, which is an external Google Drive URL.
+- **Relative paths.** All path-valued fields use repository-relative paths, never absolute paths. The sole exception is `export-location` / `source` when the transport is external (e.g. a Google Drive URL or an email message reference); their meaning is defined by the accompanying `-target` discriminator (see Transports).
 - **Timestamps are ISO-8601** with timezone offset, e.g. `2026-10-16T12:03:33+03:00`.
 - **Revisions are git commit hashes** (short or full) identifying the state of the source tree at the moment the field was written.
+
+## Transports
+
+Import and export are transport-neutral at the contract level: an artifact records *where* it came from or went to and *via which transport*, without the schema committing to a mechanism. The mechanism (the CLI, API, or MCP that moves the bytes) lives in a separate transport skill, not here, so it can change without touching the contract.
+
+A **transport** is named by a `-target` discriminator field (`source-target` on the import side, `export-target` on the export side). The accompanying location field (`source` / `export-location`) is interpreted *in that transport's terms*.
+
+| `-target` value | Location field means              | Direction(s) | Overwrite-in-place |
+|-----------------|-----------------------------------|--------------|--------------------|
+| `local`         | repository-relative path          | import+export| yes                |
+| `gdrive`        | Google Drive file/folder URL      | import+export| yes                |
+| `local-office`  | repository-relative path to an Office file (`.docx`, `.xlsx`, …) | import+export | yes |
+| `email`         | message reference (e.g. Message-ID, or a mailbox/thread ref) | import (feedback); export as attachment at most | no |
+
+- The vocabulary is open: add a row when a new transport is introduced. Keep values lowercase and hyphenated.
+- Not every transport supports every direction or overwrite semantics; the table records what each affords. A consumer (an export or ingest command) reads the discriminator to know what to expect.
+- Blank `-target` with a blank location means the artifact has not yet been imported from / exported to any transport.
 
 ## Shared provenance fields
 
@@ -18,7 +35,8 @@ These fields record how an agent-generated artifact came to exist. They appear o
 | Key            | Type              | Meaning                                                                                   |
 |----------------|-------------------|-------------------------------------------------------------------------------------------|
 | `generated-by` | string            | The command that created the artifact, e.g. `"Seed to Task"`, `"Scaffold Document"`, `"Ingest Feedback"`. |
-| `source`       | relative path / `inline` | The origin the artifact was derived from: outline file, seed file/dir. `inline` if pasted inline; both the path and `inline` when both were supplied. |
+| `source`       | path / URL / ref / `inline` | The origin the artifact was derived from, interpreted per `source-target`: a relative path (outline/seed file or dir), a URL, a message reference, or `inline` when pasted inline. Both the path and `inline` when both were supplied. |
+| `source-target`| transport id (optional) | The transport the `source` was imported through — see Transports (`local`, `gdrive`, `local-office`, `email`, …). Omit for a plain in-repository `source` or `inline`; include it when the origin is external so the `source` value is unambiguous. |
 | `generated-at` | ISO-8601 timestamp | When the artifact was generated.                                                          |
 
 ## Per-artifact schemas
@@ -83,19 +101,21 @@ The per-item acceptance flags, the flag legend, and item sourcing all live in th
 
 ### Result
 
-A result is a consolidated output document (a report, a draft, an exported deliverable). Its frontmatter tracks where the document has been exported and the state of the source at the last export, so re-exports are idempotent and traceable. These fields are the contract between this kit and the `gdrive-export` skill.
+A result is a consolidated output document (a report, a draft, an exported deliverable). Its frontmatter tracks where the document has been exported and the state of the source at the last export, so re-exports are idempotent and traceable. These fields are the contract between this kit and the transport skill that performs the export; the transport itself (CLI/API/MCP) is out of scope here.
 
 ```yaml
 ---
-export-location:                          # Google Drive URL (folder or file) the result was exported to; blank if never exported
+export-target:                            # transport id — see Transports (gdrive | local | local-office | email | …); blank if never exported
+export-location:                          # location in that transport's terms (URL | relative path | message ref); blank if never exported
 last-export-revision:                     # git commit hash of this result at the last successful export; blank if never exported
 last-export-timestamp:                    # ISO-8601 timestamp of the last successful export; blank if never exported
 ---
 ```
 
-- `export-location` is the **only** absolute/external value permitted in frontmatter (a Google Drive URL).
-- The `gdrive-export` skill reads `export-location` to resolve the overwrite target and writes all three fields back after a successful export.
-- A document whose current git revision equals `last-export-revision` is already up to date on Drive; a mismatch signals a pending re-export.
+- `export-target` names the transport; `export-location` is interpreted in that transport's terms (a Google Drive URL for `gdrive`, a repository-relative path for `local` / `local-office`, a message reference for `email`).
+- `export-location` may be external (e.g. a Drive URL or email ref) when the transport is external; for `local` / `local-office` it is a repository-relative path.
+- The transport skill reads `export-target` + `export-location` to resolve the (overwrite) destination, and writes all four fields back after a successful export. Whether overwrite-in-place is possible is a property of the transport (see the Transports table).
+- A document whose current git revision equals `last-export-revision` is already up to date at the destination; a mismatch signals a pending re-export.
 - Human-authored descriptive keys such as `title` and `version` may coexist with these fields; they are document-level metadata, not part of the export contract.
 
 ## Legacy field migration
@@ -107,3 +127,4 @@ last-export-timestamp:                    # ISO-8601 timestamp of the last succe
 | ad-hoc `Status:` body line only | `status` frontmatter key (body marker retained for narration) |
 | body `Inputs ready: [ ]` flag   | `inputs-ready: false` frontmatter key          |
 | body `Completion flag: [ ]`     | `completed: false` frontmatter key             |
+| `export-location` as implicitly Google Drive | `export-target` + `export-location` (transport-neutral; `export-target: gdrive` for the former Drive-only meaning) |

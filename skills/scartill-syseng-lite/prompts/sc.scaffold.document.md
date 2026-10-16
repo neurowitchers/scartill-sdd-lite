@@ -58,7 +58,7 @@ Create directories as needed. Never overwrite an existing file — create a new 
 
 ### Phase VI — Consolidation
 
-10. Consolidate the first draft of the document into `report/`. The report must not reference tasks or their identifiers. Give the consolidated draft the **result** frontmatter from the canonical schema (`references/frontmatter.md`): `export-location`, `last-export-revision`, and `last-export-timestamp`, all left blank until the document is exported.
+10. Consolidate the first draft of the document into `report/`. The report must not reference tasks or their identifiers. Give the consolidated draft the **result** frontmatter from the canonical schema (`references/frontmatter.md`): `export-target`, `export-location`, `last-export-revision`, and `last-export-timestamp`, all left blank until the document is exported.
 11. Document the mapping between tasks and the report in a separate file under `report/`.
 
 ## Output
