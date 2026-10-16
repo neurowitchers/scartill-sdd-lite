@@ -41,6 +41,7 @@ This preserves uncertainty as a visible discussion point. Agent-inferred content
 5. For every template field with no seed material, write the open-question marker from Uncovered Fields. Leave `[ ]` flags and `Status` at their default (initial) values.
 6. Ensure `tasks/` exists under the working root (ask the user for the working root if it is not evident from the seed location). Write the task document(s) there. Never overwrite an existing file — if a name would collide, create a new one with a sequence suffix.
 7. Report what was written: the task file path(s), the task ID(s), and a list of the uncovered fields left as open questions so the user knows what still needs their input.
+8. Mark the seed frontmatter as `comsumed: true` and add a timestamp.
 
 ## Output
 
