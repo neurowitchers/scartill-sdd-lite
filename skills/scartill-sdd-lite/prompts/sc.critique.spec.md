@@ -144,7 +144,7 @@ Spec only when the finding changes its intent, architecture, acceptance criteria
    - 🤔 **Question**: Ambiguity or assumption that needs stakeholder input. Cannot be resolved by the development team alone.
 
 5. **Generate Critique Report**:
-   Ensure the directory `docs/critiques/` exists (create it if necessary), then create the critique report. If critique report already exists, do not overwrite, create a new file. The report must include:
+   Ensure the directory `docs/critiques/` exists (create it if necessary), then create the critique report. If critique report already exists, do not overwrite, create a new file. The report carries frontmatter per the canonical schema (`references/frontmatter.md`, artifact type: critique): `status: new`, `target` set to the critiqued spec's relative path (plus the task directory in `--task-level` mode), and `target-revision` set to the target's current git commit hash (blank if uncommitted). The report must include:
 
    - **Executive Summary**: Overall assessment and readiness to proceed
    - **Product Lens Findings**: Organized by subcategory
@@ -173,7 +173,7 @@ Spec only when the finding changes its intent, architecture, acceptance criteria
      Must-Address findings, normally to the affected task files; retain 💡 Recommendations and
      🤔 Questions in the report. Update the spec only for a change to its intent, architecture,
      acceptance criteria, or Testing & Risk Strategy.
-   - After applying changes, recommend re-running the relevant critique scope to verify.
+   - After applying changes, set the critique report's frontmatter `status: applied`. When the applied critique targets a Full Spec, advance that spec's frontmatter `status` to `critiqued` and stamp `critiqued-revision` with the spec's git commit hash (see `references/frontmatter.md`). Then recommend re-running the relevant critique scope to verify.
 
 8. Additional Instructions
 

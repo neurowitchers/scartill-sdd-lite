@@ -13,7 +13,7 @@ You will execute this process in sequential phases. You must halt and wait for u
 ### Phase 1: Context Ingestion & Baseline Assessment
 1. **Codebase Audit**: Inspect local files, configs, tests, and architecture relevant to the problem.
 2. **External Research**: Use available web search and documentation tools to find relevant libraries, industry standards, architectural patterns, and known pitfalls.
-3. **Draft the Report**: Create `BRAINSTORM_REPORT.md` using the exact structure defined below, populating the **Problem Statement**, **Context & Technical Baseline**, and **External Research Findings**.
+3. **Draft the Report**: Create `BRAINSTORM_REPORT.md` using the exact structure defined below, populating the **Problem Statement**, **Context & Technical Baseline**, and **External Research Findings**. Stamp its frontmatter per the canonical schema (`references/frontmatter.md`, artifact type: brainstorm): `generated-by: "Brainstorm"`, `generated-at` (ISO-8601), and `status: drafting`.
 
 ### Phase 2: Open Questions & Assumptions (User Interruption Gate)
 1. Formulate precise, non-trivial questions regarding trade-offs, business constraints, scale, performance targets, or API boundaries that cannot be determined from the codebase alone.
@@ -36,7 +36,7 @@ You will execute this process in sequential phases. You must halt and wait for u
 
 *Resume once the user notifies you or after reading the completed placeholders.*
 
-1. Parse user answers inside the USER_INPUT tags. If answers conflict with existing code, note the discrepancy.
+1. Parse user answers inside the USER_INPUT tags. If answers conflict with existing code, note the discrepancy. (The report's frontmatter `status` is now `inputs-ready` — the user has filled the placeholders.)
 
 2. Search for additional targeted documentation/benchmarks if the user's answers introduce new dependencies or paradigms.
 
@@ -53,7 +53,7 @@ You will execute this process in sequential phases. You must halt and wait for u
 
 3. Write an actionable, phased execution plan ready for task delegation or implementation.
 
-1. Write the final `BRAINSTORM_REPORT.md` update and provide a concise terminal summary.
+1. Write the final `BRAINSTORM_REPORT.md` update, advancing its frontmatter `status` to `recommended`, and provide a concise terminal summary.
 
 ## BRAINSTORM REPORT SCHEMA
 

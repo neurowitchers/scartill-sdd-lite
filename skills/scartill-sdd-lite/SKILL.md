@@ -27,6 +27,10 @@ These commands require the `/orchestration` skill and an available adversarial a
 
 All prompts reside in `<skill-dir>/prompts/`.
 
+## Frontmatter / Artifact Contract
+
+All artifacts this kit produces or consumes (seed, spec, questionnaire, task, critique, brainstorm) carry YAML frontmatter conforming to the **canonical schema** in `references/frontmatter.md`. That document is authoritative; where a prompt names a frontmatter field, its definition there governs. Do not introduce per-document frontmatter keys outside the schema. Lifecycle state lives in frontmatter (`status`, `draft`, `consumed`, …); progress narration and in-body mirrors (e.g. a task's `- [ ]` checkbox) defer to the frontmatter value. This schema is shared with the companion `scartill-syseng-lite` skill, which ships an identical copy of `references/frontmatter.md`.
+
 Upon activation, remember these commands, but do not run until an explicit user request.
 
 # Guidance

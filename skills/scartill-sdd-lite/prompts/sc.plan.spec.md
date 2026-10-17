@@ -30,7 +30,7 @@ Execute in sequential phases. The questionnaire file is the single gate between 
 
 ### Phase 1: Ingest & Ground
 
-1. Read the target seed spec(s) in `docs/seed/`. If a seed carries the `NOTE TO AGENTS: This is a draft, DO NOT use.` marker, **stop** and tell the user to remove the draft marker first — do not plan from a draft seed.
+1. Read the target seed spec(s) in `docs/seed/`. If a seed's frontmatter carries `draft: true` (see `references/frontmatter.md`, artifact type: seed), **stop** and tell the user to set `draft: false` first — do not plan from a draft seed.
 2. Audit the codebase for relevant patterns, modules, data structures, CLI/config conventions, and test fixtures the full spec must align with.
 3. Perform targeted external research only where the seed introduces unfamiliar dependencies or paradigms.
 
@@ -58,12 +58,12 @@ Execute in sequential phases. The questionnaire file is the single gate between 
 
 1. Parse answers inside each `USER_INPUT:Qn` block. For any left at the default, apply the recorded **Recommended default** and mark that question `status: default-applied` in the questionnaire.
 2. If answers conflict with the codebase or with each other, note the discrepancy and favor codebase reality; surface the conflict as a new question rather than silently resolving it.
-3. **Iterate if needed.** If answers reveal *new* material unknowns, append a new round of questions (`Q{n+1}`, …) under a dated `## Round N` heading, mark the questionnaire `status: awaiting-answers`, and **return to the Phase 2 STOP** gate. Repeat until no blocking unknowns remain or every open question has an acceptable default.
-4. When no blocking unknowns remain, mark the questionnaire `status: resolved` and proceed to Phase 4.
+3. **Iterate if needed.** If answers reveal *new* material unknowns, append a new round of questions (`Q{n+1}`, …) under a dated `## Round N` heading, increment the questionnaire frontmatter `round`, set its frontmatter `status: awaiting-answers`, and **return to the Phase 2 STOP** gate. Repeat until no blocking unknowns remain or every open question has an acceptable default.
+4. When no blocking unknowns remain, set the questionnaire frontmatter `status: resolved` and proceed to Phase 4.
 
 ### Phase 4: Produce the Full Spec
 
-1. Expand the seed(s) into a concise but critique-ready Full Spec at `docs/specs/<spec-name>.md`, honoring every resolved answer, applied default, and refining note. Use this structure:
+1. Expand the seed(s) into a concise but critique-ready Full Spec at `docs/specs/<spec-name>.md`, honoring every resolved answer, applied default, and refining note. Stamp the spec's frontmatter per the canonical schema (`references/frontmatter.md`, artifact type: spec): `generated-by: "Plan Spec"`, `source` as the primary seed's relative path, `generated-at` as the current ISO-8601 timestamp, `status: draft`, and `critiqued-revision:` left blank. Use this structure:
    - **Problem Statement** and **Requirements**, including exhaustive, user-observable acceptance criteria.
    - **Background**: relevant codebase internals, constraints, and established patterns.
    - **Proposed Solution**: architectural boundaries, data flows, interfaces, decisions, Mermaid diagrams, and only code sketches needed to explain the design.
@@ -71,19 +71,27 @@ Execute in sequential phases. The questionnaire file is the single gate between 
    - **Task Outline**: ordered task objectives, dependencies, and intended outcomes only. Do not include per-task file lists, implementation recipes, fixtures, assertions, demo commands, or parallelization instructions.
 2. Treat `Split Tasks` as mandatory before implementation. It is the sole generator and source of truth for detailed task files under `docs/tasks/<spec-name>/`: per-task implementation guidance, exact files/patterns, test requirements, fixtures/assertions, demo commands, and orchestration/parallelization detail.
 3. Include a **Resolved Decisions** section that traces each decision back to its question id (or marks it `default-applied`), so the spec is auditable against the questionnaire.
-4. Do **not** implement. Save the spec only (equivalent to `Save Spec`). Switch to an execution agent later if needed.
+4. Do **not** implement. Save the spec only (equivalent to `Save Spec`). Mark each consumed seed's frontmatter `consumed: true` and set `consumed-at` to the current ISO-8601 timestamp (seed schema in `references/frontmatter.md`). Switch to an execution agent later if needed.
 5. Give a concise terminal summary: the spec path, how many questions were answered vs. defaulted, and any decisions taken by default that the user may want to revisit.
 
 ---
 
 ## Questionnaire Schema (`docs/plans/<spec-name>.questions.md`)
 
+The questionnaire carries frontmatter per the canonical schema (`references/frontmatter.md`, artifact type: questionnaire): `generated-by: "Plan Spec"`, `spec` as the target full spec's relative path, `generated-at` as the current ISO-8601 timestamp, `status` (`awaiting-answers` | `resolved`), and `round` (the current round number).
+
 ```markdown
+---
+generated-by: "Plan Spec"
+spec: docs/specs/<spec-name>.md
+generated-at: <ISO-8601 timestamp>
+status: awaiting-answers
+round: 1
+---
+
 # Plan Questionnaire: <Spec Title>
 
 - **Seed(s)**: `docs/seed/<name>.md`
-- **Target spec**: `docs/specs/<spec-name>.md`
-- **Status**: `awaiting-answers` | `resolved`
 - **Refining notes**: <free-form notes supplied as arguments, or "None">
 
 ## Round 1 — <YYYY-MM-DD>
@@ -113,4 +121,4 @@ Execute in sequential phases. The questionnaire file is the single gate between 
 
 ## Non-Interactive Mode (Autoflow)
 
-When invoked by `Autoflow` (or whenever the caller requests autonomous operation), run the same phases but **do not stop at the Phase 2 gate**. Still write the questionnaire to `docs/plans/<spec-name>.questions.md` for traceability, then immediately apply each question's **Recommended default**, mark it `default-applied`, set the questionnaire `status: resolved`, and proceed through Phase 4. Record every applied default in the spec's Resolved Decisions section so the autonomous choices remain auditable.
+When invoked by `Autoflow` (or whenever the caller requests autonomous operation), run the same phases but **do not stop at the Phase 2 gate**. Still write the questionnaire to `docs/plans/<spec-name>.questions.md` for traceability (frontmatter `status: awaiting-answers`), then immediately apply each question's **Recommended default**, mark it `default-applied`, set the questionnaire frontmatter `status: resolved`, and proceed through Phase 4 (stamping the spec frontmatter and consuming the seed as above). Record every applied default in the spec's Resolved Decisions section so the autonomous choices remain auditable.

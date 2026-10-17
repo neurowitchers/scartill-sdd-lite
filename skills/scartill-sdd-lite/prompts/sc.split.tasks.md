@@ -16,8 +16,10 @@ it.
 Supplied arguments: $ARGUMENTS
 
 Arguments should identify the Full Spec to split (normally `docs/specs/<spec-name>.md`). If
-omitted, locate the relevant saved Full Spec in `docs/specs/`. Do not split a draft, missing,
-or unresolved spec; report the blocker instead.
+omitted, locate the relevant saved Full Spec in `docs/specs/`. Do not split a spec whose
+frontmatter `status` is `draft` (not yet critiqued), nor a missing or unresolved spec; report
+the blocker instead. On successful split, advance the spec's frontmatter `status` to `split`
+(see `references/frontmatter.md`, artifact type: spec).
 
 ## Output
 
@@ -31,9 +33,11 @@ docs/tasks/<spec-name>/
 └── ...
 ```
 
-Use zero-padded, ordered task numbers. Mark every task's completion state with `- [ ]` until
-an implementation agent completes it. Preserve completed tasks (`- [x]`) and their verified
-outcomes; do not silently reset or overwrite them when regenerating the remaining plan.
+Use zero-padded, ordered task numbers. Each task's lifecycle is tracked by its frontmatter
+`status` (authoritative; see `references/frontmatter.md`, artifact type: task); the body
+`- [ ]` / `- [x]` checkbox mirrors it for readability. Preserve completed tasks (`- [x]` /
+`status: done`) and their verified outcomes; do not silently reset or overwrite them when
+regenerating the remaining plan.
 
 ## Execution Workflow
 
@@ -61,7 +65,18 @@ outcomes; do not silently reset or overwrite them when regenerating the remainin
 
 ## Required Task File Schema
 
+Each task file carries frontmatter per the canonical schema (`references/frontmatter.md`, artifact type: task): `generated-by: "Split Tasks"`, `source` as the source spec's relative path, `generated-at` (ISO-8601), the user-owned flags `inputs-ready` / `completed` (default `false`), and `status` (default `not-started`). The body `- [ ] **Completion**` checkbox mirrors the frontmatter `status` for human readability; the frontmatter `status` key is authoritative.
+
 ```markdown
+---
+generated-by: "Split Tasks"
+source: docs/specs/<spec-name>.md
+generated-at: <ISO-8601 timestamp>
+inputs-ready: false
+completed: false
+status: not-started
+---
+
 # Task <NN>: <Concise Task Title>
 
 - [ ] **Completion**

@@ -21,6 +21,10 @@ The kit uses a multi-stage specification workflow to separate intent from execut
 6. **Critique & Review**: Challenging specifications and reviewing resulting pull requests.
 7. **Finalization**: Updating documentation and capturing key session information.
 
+### Frontmatter / Artifact Contract
+
+Every artifact the kit produces or consumes (seed, spec, questionnaire, task, critique, brainstorm) carries YAML frontmatter conforming to a **canonical schema** at `skills/scartill-sdd-lite/references/frontmatter.md`. Lifecycle state lives in frontmatter (`status`, `draft`, `consumed`, …) and is machine-readable across sessions and by `Autoflow`'s state detection; in-body markers such as a task's `- [ ]` checkbox mirror the frontmatter value, which is authoritative. A seed is gated by `draft: true` until the user releases it with `draft: false`. The same schema is shared with the companion `scartill-syseng-lite` skill, which ships an identical copy of the reference.
+
 ---
 
 ## Commands
@@ -58,7 +62,8 @@ These commands require the [`orca-cli`](https://www.onorca.dev/) orchestration s
 ```
 skills/scartill-sdd-lite/
 ├── SKILL.md              # Skill definition with command list and workflow guidance
-└── prompts/              # Prompt templates for each workflow stage
+├── prompts/              # Prompt templates for each workflow stage
+└── references/           # Canonical frontmatter / artifact schema (shared, synced with the companion skill)
 
 skills/scartill-syseng-lite/
 ├── SKILL.md              # Companion systems-engineering skill definition

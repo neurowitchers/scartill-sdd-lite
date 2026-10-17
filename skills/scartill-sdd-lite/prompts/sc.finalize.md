@@ -8,6 +8,9 @@ capture deferred work for future iterations.
 If the changes affect user interfaces or project configuration, make the relevant updates
 to `README.md` and any documentation it references.
 
+When finalizing a spec-driven change, advance the Full Spec's frontmatter `status` to
+`finalized` (see `references/frontmatter.md`, artifact type: spec).
+
 ## 2. Capture Deferred Items (Feedback)
 
 Regardless of how the work was driven (manual, `--auto`, Autoflow, or any other mode), some

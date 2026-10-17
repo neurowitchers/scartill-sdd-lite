@@ -1,7 +1,7 @@
 # Skill Harmonization Proposal: Systematic Frontmatter Across `scartill-sdd-lite` and `scartill-syseng-lite`
 
 **Date**: 2026-10-17
-**Status**: Draft for review
+**Status**: Accepted (decisions resolved — see §10); implementation in progress
 **Scope**: Prompt-text and documentation changes only (no executable code)
 **Trigger**: Review of whether `Plan Spec` (`sc.plan.spec.md`) is consistent with recent upstream frontmatter changes.
 
@@ -187,27 +187,27 @@ Lift these from the canonical "Principles" section to apply repo-wide:
 
 ## 7. Migration / compatibility
 
-Existing `docs/` artifacts created under the old convention have no frontmatter. Rollout approach:
-- **Lenient readers**: prompts treat *absent* frontmatter as the legacy default (e.g. missing
-  `draft:` → fall back to the body `NOTE TO AGENTS` marker; missing seed `consumed` → treat as
-  `false`). This makes the rollout non-breaking.
-- Document the legacy fallback in the schema so it is intentional, not accidental.
+**Resolved (decision 5): no migration or fallback guidance in the prompts.** To keep the skills
+free of noise, prompts assume frontmatter is present and do **not** carry legacy-fallback reading
+logic. Existing `docs/` artifacts created under the old convention are handled **project by
+project** by the user, outside the skill definitions.
 
 ---
 
 ## 8. Sequencing (safe rollout order)
 
-1. Extend the canonical schema with `spec`, `questionnaire`, (optional `brainstorm`) types and the
-   global conventions.
-2. (Option B) Copy the reference into `scartill-sdd-lite/references/`.
-3. Update seed producers (`gate.input`, `brainstorm.to.seed`) + add legacy fallback reads.
+1. Extend the canonical schema with `spec`, `questionnaire`, `brainstorm` types and the global
+   conventions.
+2. Copy the reference into `scartill-sdd-lite/references/` (Option B).
+3. Update seed producers (`gate.input`, `brainstorm.to.seed`) to emit seed frontmatter.
 4. Update `plan.spec` (read `draft`, stamp spec + questionnaire + consume seed).
 5. Update `split.tasks` and `critique.spec`.
-6. Update `autoflow` state detection to read frontmatter (with legacy fallback).
+6. Update `autoflow` state detection to read frontmatter.
 7. Update `finalize`, timestamps in `brainstorm` / `archive`.
 8. Update `README.md` and both `SKILL.md` files.
 
 Each step is prompt-text-only (no executable code), so the whole change is low-risk and reversible.
+No migration/fallback logic is added to the prompts (decision 5).
 
 ---
 
@@ -233,3 +233,17 @@ Each step is prompt-text-only (no executable code), so the whole change is low-r
 5. **Legacy migration** — lenient fallback readers (recommended) vs. a one-time migration of existing `docs/` artifacts?
 
 > disregard migration guidance to reduce skill's noise - will handle project by project
+
+---
+
+## 10. Resolved Decisions (adjudicated 2026-10-17)
+
+| # | Decision | Resolution |
+|---|----------|------------|
+| 1 | Structural approach | **Option B** — each skill ships its own `references/frontmatter.md`, kept in sync. |
+| 2 | Seed draft signal | **Frontmatter-only `draft:`** — remove the `NOTE TO AGENTS: ... DO NOT use.` body line entirely. |
+| 3 | Scope of first pass | **Full harmonization** — all artifact types and all affected prompts in one pass. |
+| 4 | Brainstorm type | **Add** a `brainstorm` frontmatter type (`status: drafting → inputs-ready → recommended`). |
+| 5 | Legacy migration | **No migration/fallback guidance** in the prompts; handled per project by the user. |
+
+**Status**: Accepted — implementation in progress.
