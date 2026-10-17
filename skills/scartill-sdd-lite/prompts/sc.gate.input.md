@@ -52,18 +52,27 @@ You are an expert software architect and technical gatekeeper. Your task is to p
 
 5. **User Notification**
    - Inform the user which seed were generated, if successful.
-   - Remind the user to remove `do not use` markers manually.
+   - Remind the user that each generated seed is marked `draft: true`; they must set `draft: false` in the seed's frontmatter to release it for downstream commands (`Plan Spec`, `Seed to Task`).
 
 ---
 
 ## Artefact Templates
 
-Note that the seed template starts with a draft marker that the user should remove manually post-generation.
+Note that the generated seed carries `draft: true` in its frontmatter; the user releases it for downstream use by setting `draft: false` (see `references/frontmatter.md`, artifact type: seed).
 
 ### A. Seed Specification Template (`docs/seed/<feature-name>.md`)
 
+Frontmatter conforms to the canonical schema (`references/frontmatter.md`, artifact type: seed, generated variant). Set `generated-by: "Gate Input"`, `source` to the input document's relative path, `generated-at` to the current ISO-8601 timestamp, `draft: true`, and `consumed: false`.
+
 ```markdown
-NOTE TO AGENTS: This is a draft, DO NOT use.
+---
+generated-by: "Gate Input"
+source: <relative/path/to/input.md>
+generated-at: <ISO-8601 timestamp>
+draft: true
+consumed: false
+consumed-at:
+---
 
 # Seed: <Feature Title>
 

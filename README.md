@@ -15,11 +15,15 @@ The kit uses a multi-stage specification workflow to separate intent from execut
 
 1. **Brainstorming**: Structured technical exploration of a problem, producing a research report with options and trade-offs.
 2. **Seed Specs (`docs/seed/`)**: Concise, human-written documents capturing core user intent, high-level CLI/config shape, and expected behavior.
-3. **Full Specs (`docs/specs/`)**: Actionable implementation blueprints derived from seed specs, complete with requirements, background, technical designs, and a detailed task breakdown.
-4. **Task Splitting**: Full specs are split into individual tasks (`docs/tasks/`) for parallel or sequential execution.
+3. **Full Specs (`docs/specs/`)**: Concise, critique-ready design blueprints derived from seed specs: requirements and acceptance criteria, background, architecture, testing/risk strategy, and ordered task outlines. The **Plan Spec** command drives this expansion through a persistent, iterative questionnaire file (`docs/plans/`) rather than interactive in-terminal questioning.
+4. **Task Splitting**: A mandatory post-critique stage that expands task outlines into authoritative, implementation-ready task files (`docs/tasks/`) with exact guidance, verification requirements, demo commands, and orchestration details.
 5. **Implementation**: Executing the tasks using subagents.
 6. **Critique & Review**: Challenging specifications and reviewing resulting pull requests.
 7. **Finalization**: Updating documentation and capturing key session information.
+
+### Frontmatter / Artifact Contract
+
+Every artifact the kit produces or consumes (seed, spec, questionnaire, task, critique, brainstorm) carries YAML frontmatter conforming to a **canonical schema** at `skills/scartill-sdd-lite/references/frontmatter.md`. Lifecycle state lives in frontmatter (`status`, `draft`, `consumed`, …) and is machine-readable across sessions and by `Autoflow`'s state detection; in-body markers such as a task's `- [ ]` checkbox mirror the frontmatter value, which is authoritative. A seed is gated by `draft: true` until the user releases it with `draft: false`. The same schema is shared with the companion `scartill-syseng-lite` skill, which ships an identical copy of the reference.
 
 ---
 
@@ -32,8 +36,9 @@ The workflow is driven by prompts located in `skills/scartill-sdd-lite/prompts/`
 | **Gate Input** | `sc.gate.input.md` | Sanitizes raw input, extracts clean seed specs, and generates a PM feedback report. Takes an input document path as parameter. |
 | **Brainstorm** | `sc.brainstorm.md` | Conducts a rigorous, structured technical brainstorming session. Takes the problem to consider as parameter. |
 | **Seed** | `sc.brainstorm.to.seed.md` | Converts final brainstorming results into a seed specification. |
+| **Plan Spec** | `sc.plan.spec.md` | Expands seed(s) into a full spec via a persistent, iterative questionnaire file (`docs/plans/<spec-name>.questions.md`), gathering clarifications through file edits instead of interactive in-terminal questioning. Optional parameters: a seed path and/or free-form refining notes. |
 | **Save Spec** | `sc.save.spec.md` | Saves a persistent specification to `docs/specs` before implementation. |
-| **Split Tasks** | `sc.split.tasks.md` | Decomposes the final specification into individual tasks under `docs/tasks/<spec-name>/`. |
+| **Split Tasks** | `sc.split.tasks.md` | **Required before implementation.** Expands the concise spec's task outlines into authoritative task files under `docs/tasks/<spec-name>/`, including implementation guidance, verification requirements, demo commands, and orchestration details. |
 | **Implement** | `sc.implement.tasks.md` | Orchestrates task implementation using subagents. |
 | **Critique** | `sc.critique.spec.md` | Challenges the specification from Product and Engineering perspectives. Takes the file to critique as parameter. |
 | **Code Review** | `sc.code.review.md` | Reviews pull requests/branches for correctness, type safety, security, and performance. |
@@ -46,9 +51,9 @@ These commands require the [`orca-cli`](https://www.onorca.dev/) orchestration s
 
 | Command | Prompt | Description |
 |---------|--------|-------------|
-| **Handoff Critique** | `sc.handoff.critique.md` | Uses Orca orchestration to launch an adversarial agent (Antigravity, via `agy`) in a new terminal to run the Critique command against the spec, then applies the resulting critique from `docs/critiques/`. Supports `--auto` to apply automatically once the critique is ready. |
+| **Handoff Critique** | `sc.handoff.critique.md` | Uses Orca orchestration to launch an adversarial agent (Antigravity, via `agy`) in a new terminal to run the Critique command against the spec, then applies the resulting critique from `docs/critiques/`. Supports `--auto` to apply only 🎯 Must-Address findings automatically once the critique is ready (preserving Recommendations and Questions for human review). `--task-level` additionally critiques the saved spec plus `docs/tasks/<spec-name>/`; this second pass is reserved for Autoflow. |
 | **Handoff Code Review** | `sc.handoff.code.review.md` | Uses Orca orchestration to launch an adversarial agent (Antigravity, via `agy`) in a new terminal to run the Code Review command against the current PR/branch, then acts on the resulting review from `docs/codereviews/`. Supports `--auto` to apply CRITICAL/HIGH fixes automatically once the review is ready. |
-| **Autoflow** | `sc.autoflow.md` | Polymorphically drives the full pipeline end-to-end and autonomously. Detects the starting state and begins at the earliest available artifact: a filled-in brainstorm awaiting Phase 3–4 analysis (which it finalizes), a completed brainstorm with no seed (from which it derives a seed following the recommendation), seed(s) only (from which it plans a Full Spec), or an existing Full Spec. From there it runs Handoff Critique (`--auto`), Split Tasks, Implement, Handoff Code Review (`--auto`), and Finalize, committing at each stage. Accepts free-form user refining notes as arguments. |
+| **Autoflow** | `sc.autoflow.md` | Polymorphically drives the full pipeline end-to-end and autonomously. Detects the starting state and begins at the earliest available artifact: a filled-in brainstorm awaiting Phase 3–4 analysis (which it finalizes), a completed brainstorm with no seed (from which it derives a seed following the recommendation), seed(s) only (from which it plans a Full Spec), or an existing Full Spec. From there it runs specification-level Handoff Critique (`--auto`), mandatory Split Tasks, an Autoflow-only task-level Handoff Critique (`--task-level --auto`, applying only Must-Address findings), Implement, Handoff Code Review (`--auto`), and Finalize, committing at each stage. Accepts free-form user refining notes as arguments. |
 
 ---
 
@@ -57,7 +62,8 @@ These commands require the [`orca-cli`](https://www.onorca.dev/) orchestration s
 ```
 skills/scartill-sdd-lite/
 ├── SKILL.md              # Skill definition with command list and workflow guidance
-└── prompts/              # Prompt templates for each workflow stage
+├── prompts/              # Prompt templates for each workflow stage
+└── references/           # Canonical frontmatter / artifact schema (shared, synced with the companion skill)
 
 skills/scartill-syseng-lite/
 ├── SKILL.md              # Companion systems-engineering skill definition
@@ -66,8 +72,9 @@ skills/scartill-syseng-lite/
 
 docs/                     # Specification artifacts (created per-project)
 ├── seed/                 # Initial human-written seed specifications
+├── plans/                # Persistent planning questionnaires (Plan Spec: <spec-name>.questions.md)
 ├── specs/                # Full implementation specifications
-├── tasks/                # Detailed task files (per-spec subdirectories)
+├── tasks/                # Detailed authoritative task files (per-spec subdirectories)
 ├── brainstorms/          # Brainstorming research reports
 ├── critiques/            # Reports generated by spec critiques
 ├── codereviews/          # Reports generated by code reviews
@@ -86,14 +93,19 @@ Copy or symlink the skill directories under `skills/` (`scartill-sdd-lite` and, 
 ## Typical Workflow
 
 ```
-Brainstorm → Seed → Save Spec → Critique → Split Tasks → Implement → Finalize
+Brainstorm → Seed → Plan Spec → Save Spec → Critique → Split Tasks → Implement → Finalize
 ```
 
 Or starting from external input:
 
 ```
-Gate Input → Seed → Save Spec → Critique → Split Tasks → Implement → Code Review → Finalize
+Gate Input → Seed → Plan Spec → Save Spec → Critique → Split Tasks → Implement → Code Review → Finalize
 ```
+
+These diagrams show the **manual flow**: one specification-level critique before mandatory
+Split Tasks. Autoflow adds one automated step after Split Tasks — `Handoff Critique
+--task-level --auto` — before implementation; that second pass is not required or recommended
+for the manual workflow.
 
 ---
 

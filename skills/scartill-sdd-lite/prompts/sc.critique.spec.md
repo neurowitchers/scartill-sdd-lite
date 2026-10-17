@@ -10,6 +10,11 @@ Challenge the specification and implementation plan through two distinct expert 
 
    Adopt the mindset of an experienced product leader who cares deeply about user value, market fit, and business impact. Evaluate:
 
+   This is the **pre-split, specification-level** pass. Assess user journeys, acceptance
+   criteria, declared edge/failure behaviour, and risks that the Full Spec must contain; do
+   not reject the spec merely because individual task files, exact fixtures, or demo commands
+   do not exist yet. In manual flow, this is the only required critique pass.
+
    #### 1a. Problem Validation
    - Is the problem statement clear and well-defined?
    - Is this solving a real user pain point, or is it a solution looking for a problem?
@@ -30,11 +35,13 @@ Challenge the specification and implementation plan through two distinct expert 
    - What would happen if this feature were NOT built? What's the cost of inaction?
 
    #### 1d. Edge Cases & User Experience
-   - What happens when things go wrong? (error states, empty states, loading states)
-   - How does this feature interact with existing functionality?
-   - Are accessibility considerations addressed?
-   - Is the feature discoverable and intuitive?
-   - What are the onboarding/migration implications for existing users?
+   - Do the acceptance criteria and Testing & Risk Strategy identify user-visible error,
+     empty, loading, migration, and recovery states appropriate to the feature?
+   - Are the stated user journeys complete, including interactions with existing functionality?
+   - Are accessibility, discoverability, onboarding, and backwards-compatibility implications
+     explicitly addressed at the specification level?
+   - Are material unresolved edge cases recorded as risks, decisions, or questions rather than
+     being hidden in a future implementation task?
 
    #### 1e. Success Measurement
    - Are the success criteria measurable and time-bound?
@@ -75,11 +82,14 @@ Challenge the specification and implementation plan through two distinct expert 
    - Are there resource-intensive operations that should be async or batched?
 
    #### 2e. Testing Strategy
-   - Is the testing plan comprehensive (unit, integration, E2E)?
-   - Are the critical paths identified for priority testing?
-   - Is the test data strategy realistic?
-   - Are there testability concerns (hard-to-mock dependencies, race conditions)?
-   - Is the test coverage target appropriate for the risk level?
+   - Does the Full Spec's **Testing & Risk Strategy** define proportionate unit, integration,
+     and end-to-end coverage for the declared acceptance criteria and critical paths?
+   - Are high-risk failure modes, realistic test-data needs, and testability concerns identified
+     at the architecture/contract level?
+   - Is the coverage ambition appropriate for the feature's risk level, including explicit
+     verification evidence or success criteria?
+   - Do not require exact test file paths, fixture definitions, assertions, or demo commands in
+     this pass; `Split Tasks` generates those mandatory execution details after this critique.
 
    #### 2f. Operational Readiness
    - Is observability planned (logging, metrics, tracing)?
@@ -93,6 +103,32 @@ Challenge the specification and implementation plan through two distinct expert 
    - Are integration points with existing systems well-defined?
    - What happens if an external service is unavailable?
    - Are API versioning and backward compatibility considered?
+
+## Task-Level Critique Mode (Autoflow Only)
+
+When the caller supplies `--task-level`, conduct a **second critique pass** after mandatory
+`Split Tasks`. This mode is intended for `Autoflow`; do not recommend or require it in the
+manual workflow.
+
+Read both the saved Full Spec and `docs/tasks/<spec-name>/`, including `summary.md`. Retain
+all Product and Engineering checks above, then additionally assess:
+
+- **Task traceability:** every acceptance criterion and critical Testing & Risk Strategy item
+  maps to a task and concrete verification evidence.
+- **Implementation readiness:** task file ownership, proposed paths/patterns, interfaces,
+  dependencies, and sequencing are internally consistent and grounded in the codebase.
+- **Verification readiness:** task-level test fixtures, assertions, manual checks, demo
+  commands, expected results, and integration checkpoints cover critical and user-visible
+  behaviours.
+- **Orchestration risks:** safe parallel groups, shared-file conflicts, handoffs, migration or
+  rollout ordering, and final integration work are explicit and viable.
+
+Classify and report findings with the normal severity scheme. In this mode, associate each
+finding with the affected spec section and/or task file. For `--auto`, apply **only** 🎯
+Must-Address findings automatically; preserve 💡 Recommendations and 🤔 Questions in the
+critique report for later human review. Task-file fixes are the default target; amend the Full
+Spec only when the finding changes its intent, architecture, acceptance criteria, or Testing
+& Risk Strategy.
 
 3. **Cross-Lens Synthesis**:
    Identify items where both lenses converge (these are highest priority):
@@ -108,7 +144,7 @@ Challenge the specification and implementation plan through two distinct expert 
    - 🤔 **Question**: Ambiguity or assumption that needs stakeholder input. Cannot be resolved by the development team alone.
 
 5. **Generate Critique Report**:
-   Ensure the directory `docs/critiques/` exists (create it if necessary), then create the critique report. If critique report already exists, do not overwrite, create a new file. The report must include:
+   Ensure the directory `docs/critiques/` exists (create it if necessary), then create the critique report. If critique report already exists, do not overwrite, create a new file. The report carries frontmatter per the canonical schema (`references/frontmatter.md`, artifact type: critique): `status: new`, `target` set to the critiqued spec's relative path (plus the task directory in `--task-level` mode), and `target-revision` set to the target's current git commit hash (blank if uncommitted). The report must include:
 
    - **Executive Summary**: Overall assessment and readiness to proceed
    - **Product Lens Findings**: Organized by subcategory
@@ -129,15 +165,24 @@ Challenge the specification and implementation plan through two distinct expert 
    - 🛑 **RETHINK**: Fundamental product or architecture concerns. Recommend revisiting the spec.
 
 7. **Offer Remediation**:
-   For each must-address item and recommendation:
-   - Provide a specific suggested edit to the spec.
-   - Ask: "Would you like me to apply these changes? (all / select / none)"
-   - If user approves, apply changes to the relevant files
-   - After applying changes, recommend re-running `critique` to verify.
+   - In the default specification-level pass **without `--auto`** (the manual flow), for each
+     🎯 Must-Address item and 💡 Recommendation, provide a specific suggested edit to the spec
+     and ask: "Would you like me to apply these changes? (all / select / none)". If approved,
+     apply changes to the relevant planning artifacts.
+   - In the specification-level pass **with `--auto`** (e.g. Autoflow's first pass), do **not**
+     ask for confirmation: apply **only** 🎯 Must-Address findings to the spec. Retain 💡
+     Recommendations and 🤔 Questions in the report for human review — do not auto-apply them.
+     This mirrors the task-level `--auto` rule so the earlier, less-reviewed pass never applies
+     more than the later one.
+   - In `--task-level --auto` mode, do **not** ask for confirmation: apply only 🎯
+     Must-Address findings, normally to the affected task files; retain 💡 Recommendations and
+     🤔 Questions in the report. Update the spec only for a change to its intent, architecture,
+     acceptance criteria, or Testing & Risk Strategy.
+   - After applying changes, set the critique report's frontmatter `status: applied`. When the applied critique targets a Full Spec, advance that spec's frontmatter `status` to `critiqued` and stamp `critiqued-revision` with the spec's git commit hash (see `references/frontmatter.md`). Then recommend re-running the relevant critique scope to verify.
 
 8. Additional Instructions
 
 Do not use absolute paths for referencing files in the report. Use relative paths only.
 
-After generation the report, durtin the follow-up session, update the critique report only. Do not alter other files without explicit request.
+After generating the report, update only the critique report in a follow-up session unless the user explicitly requests remediation or the invocation supplies `--auto` (specification-level or `--task-level`), whose Must-Address-only remediation rules above apply.
 

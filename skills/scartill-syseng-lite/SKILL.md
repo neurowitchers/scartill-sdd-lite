@@ -40,7 +40,7 @@ Fixed conventions:
 
 ## Conventions
 
-- **Frontmatter schema**: all artifact frontmatter (seed, task, critique, result) conforms to the canonical schema in `references/frontmatter.md`. That document is authoritative; where a prompt names a frontmatter field, its definition there governs. Do not introduce per-document frontmatter keys outside the schema.
+- **Frontmatter schema**: all artifact frontmatter (seed, spec, questionnaire, task, critique, brainstorm, result) conforms to the canonical schema in `references/frontmatter.md`. That document is authoritative; where a prompt names a frontmatter field, its definition there governs. Do not introduce per-document frontmatter keys outside the schema. This schema is shared with the companion `scartill-sdd-lite` skill, which ships an identical copy of `references/frontmatter.md`.
 - **Relative paths** in all generated artifacts.
 - **Human adjudication**: the agent proposes, the user decides; stop at every gate and never advance a user's decision on their behalf.
 - **Traceability**: every input element reaches a definite outcome; nothing is silently dropped.
