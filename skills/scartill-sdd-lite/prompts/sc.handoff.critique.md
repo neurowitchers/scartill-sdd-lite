@@ -55,8 +55,12 @@ parallel-work risks. Findings must name the affected spec section and/or task fi
    `--auto`, wait for the adversarial agent to finish, locate the latest corresponding report
    in `docs/critiques/`, and continue without asking for confirmation.
 4. **Apply findings.**
-   - **Specification-level mode:** follow the critique report's remediation flow; obtain user
-     approval unless `--auto` was supplied.
+   - **Specification-level mode:** follow the critique report's remediation flow. Without
+     `--auto`, obtain user approval (apply 🎯 Must-Address and 💡 Recommendations as the user
+     selects). **With `--auto`, do not ask for confirmation and apply only 🎯 Must-Address
+     findings**, retaining 💡 Recommendations and 🤔 Questions in the report for human review —
+     the same Must-Address-only rule as the task-level pass, so the earlier pass never applies
+     more than the later one.
    - **Task-level mode with `--auto`:** apply **only** 🎯 Must-Address findings. Apply fixes to
      the affected task files by default. Amend the Full Spec only if a finding changes intent,
      architecture, acceptance criteria, or the Testing & Risk Strategy. Leave 💡

@@ -165,10 +165,15 @@ Spec only when the finding changes its intent, architecture, acceptance criteria
    - 🛑 **RETHINK**: Fundamental product or architecture concerns. Recommend revisiting the spec.
 
 7. **Offer Remediation**:
-   - In the default specification-level pass, for each Must-Address item and Recommendation,
-     provide a specific suggested edit to the spec and ask: "Would you like me to apply these
-     changes? (all / select / none)". If approved, apply changes to the relevant planning
-     artifacts.
+   - In the default specification-level pass **without `--auto`** (the manual flow), for each
+     🎯 Must-Address item and 💡 Recommendation, provide a specific suggested edit to the spec
+     and ask: "Would you like me to apply these changes? (all / select / none)". If approved,
+     apply changes to the relevant planning artifacts.
+   - In the specification-level pass **with `--auto`** (e.g. Autoflow's first pass), do **not**
+     ask for confirmation: apply **only** 🎯 Must-Address findings to the spec. Retain 💡
+     Recommendations and 🤔 Questions in the report for human review — do not auto-apply them.
+     This mirrors the task-level `--auto` rule so the earlier, less-reviewed pass never applies
+     more than the later one.
    - In `--task-level --auto` mode, do **not** ask for confirmation: apply only 🎯
      Must-Address findings, normally to the affected task files; retain 💡 Recommendations and
      🤔 Questions in the report. Update the spec only for a change to its intent, architecture,
@@ -179,5 +184,5 @@ Spec only when the finding changes its intent, architecture, acceptance criteria
 
 Do not use absolute paths for referencing files in the report. Use relative paths only.
 
-After generating the report, update only the critique report in a follow-up session unless the user explicitly requests remediation or the invocation is `--task-level --auto`, whose Must-Address remediation rules above apply.
+After generating the report, update only the critique report in a follow-up session unless the user explicitly requests remediation or the invocation supplies `--auto` (specification-level or `--task-level`), whose Must-Address-only remediation rules above apply.
 

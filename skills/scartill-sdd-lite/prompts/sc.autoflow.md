@@ -59,7 +59,7 @@ If only seed(s) are available (and no full spec yet):
 If a full spec was interactively planned or already exists:
 
 1. Ensure the spec is saved to `docs/specs/` (call `Save Spec` if it has not been saved).
-2. **Specification-level critique (skip if already critiqued).** If the spec has **not** yet been critiqued, run `Handoff Critique --auto` (prompt: `sc.handoff.critique.md`) — this hands the spec to an adversarial agent via Orca and applies the resulting critique automatically once ready — then **commit** the critiqued spec with a message such as `spec: apply critique for <spec-name>`.
+2. **Specification-level critique (skip if already critiqued).** If the spec has **not** yet been critiqued, run `Handoff Critique --auto` (prompt: `sc.handoff.critique.md`) — this hands the spec to an adversarial agent via Orca and automatically applies **only** 🎯 Must-Address findings to the spec once ready, preserving 💡 Recommendations and 🤔 Questions in the report for later human review (and for `Finalize` to capture) — then **commit** the critiqued spec with a message such as `spec: apply critique for <spec-name>`.
 
 If the state is **Full spec, already critiqued** (the user already ran a critique handoff without `--auto` and reviewed it, or a current critique already exists in `docs/critiques/`), **skip** this step and proceed directly to Split Tasks. If the user already applied and committed the critique, there is nothing to commit here.
 3. Run the **mandatory** `Split Tasks` command (prompt: `sc.split.tasks.md`) to generate the authoritative execution-detail set in `docs/tasks/<spec-name>/`, including `summary.md`. Do not proceed to implementation from the Full Spec alone.
