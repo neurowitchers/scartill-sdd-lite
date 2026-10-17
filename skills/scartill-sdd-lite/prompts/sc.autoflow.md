@@ -1,6 +1,6 @@
 # Autoflow
 
-Drive the specification-driven development pipeline end-to-end, autonomously, with no interactive pauses. Autoflow is **polymorphic**: it inspects the current session and the `docs/` tree to determine where in the workflow it should start — from a filled-in but unprocessed brainstorm, a completed brainstorm, a seed, or a full spec — then runs forward from there to a working, committed implementation.
+Drive the specification-driven development pipeline end-to-end, autonomously, with no interactive pauses. Autoflow is **polymorphic**: it inspects the current session and the `docs/` tree to determine where in the workflow it should start — from a filled-in but unprocessed brainstorm, a completed brainstorm, a seed, an answered plan questionnaire, or a full spec — then runs forward from there to a working, committed implementation.
 
 This command depends on the `orca-cli` orchestration skill because it invokes
 `Handoff Critique` with the `--auto` option.
@@ -17,11 +17,13 @@ Before doing anything, determine the starting state. Autoflow can enter at sever
 
 1. **Brainstorm inputs ready, not yet applied** — a brainstorm report exists in `docs/brainstorms/` whose frontmatter `status` is `inputs-ready` (the user has filled the Phase 2 `USER_INPUT` placeholders — the default `[REPLACE THIS TEXT WITH YOUR ANSWER / PREFERENCE]` text is gone — but Phases 3–4 are not yet complete). Autoflow resumes the brainstorm from Phase 3. (See `references/frontmatter.md`, artifact type: brainstorm.)
 2. **Brainstorm done, no seed** — a brainstorm report in `docs/brainstorms/` has frontmatter `status: recommended` (Phases 3–4 completed, `## Recommendation` populated), but no corresponding seed exists in `docs/seed/`. Autoflow derives a seed from the brainstorm, following its recommendation.
-3. **Seed(s) only** — one or more non-draft seeds (frontmatter `draft: false`) exist in `docs/seed/` (produced in this session via `Brainstorm`/`Seed` or `Gate Input` and released by the user), but no corresponding full spec.  4. **Full spec, not yet critiqued** — a full spec for the feature under discussion exists in `docs/specs/` with frontmatter `status: draft`, or a full spec was interactively planned in this session, and no critique has been applied yet.
-5. **Full spec, already critiqued** — a full spec exists in `docs/specs/` with frontmatter `status: critiqued` (or later) **and** a critique for it has already been produced and reviewed (a critique file exists in `docs/critiques/` for this spec, or the user indicates they already ran a critique handoff *without* `--auto` and reviewed/applied it themselves). In this state the critique step is **skipped** — do not run a second critique pass.
-6. **Neither** — no brainstorm, seed, or full spec relevant to the current work.
+3. **Seed(s) only** — one or more non-draft seeds (frontmatter `draft: false`) exist in `docs/seed/` (produced in this session via `Brainstorm`/`Seed` or `Gate Input` and released by the user), but no corresponding questionnaire or full spec.
+4. **Questionnaire answered, no full spec** — a plan questionnaire exists in `docs/plans/<spec-name>.questions.md` with frontmatter `status: awaiting-answers` and the user has supplied at least one answer (at least one `USER_INPUT` block no longer holds the default `[REPLACE THIS TEXT …]` placeholder), but no corresponding full spec exists yet in `docs/specs/`. Autoflow resumes planning from this questionnaire, honoring the user's filled answers and defaulting only the still-blank questions. (See `references/frontmatter.md`, artifact type: questionnaire.)
+5. **Full spec, not yet critiqued** — a full spec for the feature under discussion exists in `docs/specs/` with frontmatter `status: draft`, or a full spec was interactively planned in this session, and no critique has been applied yet.
+6. **Full spec, already critiqued** — a full spec exists in `docs/specs/` with frontmatter `status: critiqued` (or later) **and** a critique for it has already been produced and reviewed (a critique file exists in `docs/critiques/` for this spec, or the user indicates they already ran a critique handoff *without* `--auto` and reviewed/applied it themselves). In this state the critique step is **skipped** — do not run a second critique pass.
+7. **Neither** — no brainstorm, seed, questionnaire, or full spec relevant to the current work.
 
-If the state is **Neither**, stop and tell the user to run `Brainstorm`, `Gate Input`, or `Seed` first. Do not guess intent or fabricate a brainstorm, seed, or spec.
+If the state is **Neither**, stop and tell the user to run `Brainstorm`, `Gate Input`, `Seed`, or `Plan Spec` first. Do not guess intent or fabricate a brainstorm, seed, questionnaire, or spec.
 
 If a brainstorm report exists but its frontmatter `status` is still `drafting` (its `USER_INPUT` placeholders retain the default placeholder text), treat it as **Neither**: stop and tell the user to fill in their answers in `docs/brainstorms/` first. Do not fabricate the user's answers.
 
@@ -47,12 +49,22 @@ If a brainstorm report has a populated `## Recommendation` section but no corres
 
 ## Branch 2 — Seed(s) only
 
-If only seed(s) are available (and no full spec yet):
+If only seed(s) are available (and no questionnaire or full spec yet):
 
 1. Perform **non-interactive planning** to expand the seed(s) into a Full Spec, following the skill's "Seed vs Full Specs" guidance and the `Plan Spec` prompt (`sc.plan.spec.md`). Produce a concise, critique-ready blueprint: problem statement, requirements and acceptance criteria, background, proposed solution, Testing & Risk Strategy, and ordered task outlines. Apply the user refining notes. **Run Plan Spec in non-interactive mode:** write the questionnaire to `docs/plans/<spec-name>.questions.md` for traceability, then — instead of stopping at the questionnaire gate — immediately apply each question's recorded **Recommended default**, mark it `default-applied`, and record those decisions in the spec's Resolved Decisions section. Do not pause for clarification; make reasonable, well-documented assumptions.
 2. Save the Full Spec to `docs/specs/` (equivalent to `Save Spec`).
 3. **Commit** the new full spec with a message such as `spec: plan full spec for <spec-name>`.
 4. Proceed to **Branch 1**.
+
+## Branch Questionnaire — Questionnaire answered, no full spec
+
+If a plan questionnaire in `docs/plans/<spec-name>.questions.md` has frontmatter `status: awaiting-answers` and the user has supplied at least one answer (at least one `USER_INPUT` block no longer holds the default placeholder), but no full spec exists yet:
+
+1. **Resume planning from the questionnaire** via the `Plan Spec` prompt (`sc.plan.spec.md`) in **non-interactive mode**, but do **not** regenerate the questionnaire from scratch and do **not** overwrite the user's answers. Parse the answer inside each `USER_INPUT:Qn` block: honor every filled answer, and apply the recorded **Recommended default** only to questions still left at the placeholder (marking those `default-applied`). This mirrors how Branch 4 treats a brainstorm's `inputs-ready` placeholder answers as authoritative input. Apply the user refining notes.
+2. Resolve the questionnaire: once every question is either answered or defaulted, set its frontmatter `status: resolved`. Expand the seed(s) and resolved answers into a Full Spec, recording every answered decision and applied default in the spec's Resolved Decisions section (traced to its question id) so the mix of user answers and defaults remains auditable.
+3. Save the Full Spec to `docs/specs/` (equivalent to `Save Spec`), consuming the seed(s) as `Plan Spec` specifies.
+4. **Commit** the new full spec with a message such as `spec: plan full spec for <spec-name>`.
+5. Proceed to **Branch 1**.
 
 ## Branch 1 — Full spec available
 
