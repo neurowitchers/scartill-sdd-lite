@@ -89,7 +89,7 @@ Accept: [ ]
 Run only after the user confirms. Re-read the adjudicated critique file. If there are open (`[ ]`) items, stop and require the user to decide.
 
 6. Amend the **document under critique** based on accepted feedback (`[x]`, and the valid portion of `[p]`). After amending, set the critique's frontmatter `status` to `applied`.
-7. Ensure `feedback/` exists. Consolidate residual items into a new deviations document there. Residual items are:
+7. Ensure `feedback/` exists. Consolidate residual items into a new deviations document there. `feedback/` is **forward-looking** — it records only open items a human still needs to consider, kept current (not a chronological log of what was done; that is journal content for an optional `journal/`). Residual items are:
    - the not-accepted portion of `[p]`;
    - `[c]` items the agent still considers worth clarifying;
    - valid critique the user rejected;

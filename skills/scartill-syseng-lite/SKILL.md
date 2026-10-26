@@ -25,7 +25,8 @@ All three commands operate inside a **document workspace** — one directory per
 | `task-results/` | Per-task output documents (the `Scaffold Document` work products).                       | —         |
 | `quest/`        | Preprocessing questions with answer placeholders (`Scaffold Document`).                   | —         |
 | `critiques/`    | Human-adjudicated critiques (`Ingest Feedback`).                                          | —         |
-| `feedback/`     | Residual deviations consolidated from an adjudicated critique.                            | —         |
+| `feedback/`     | **Forward-looking** residual deviations and open actions for human consideration (open items only — not a log of work done). | —         |
+| `journal/`      | Historical "what was done" record across a task's versions/passes (optional; use when a run history is worth keeping). | —         |
 | `analysis/`     | Ad-hoc analysis / decision notes.                                                        | —         |
 | `results/`      | Consolidated output document(s) and the task-to-results mapping.                         | —         |
 | `templates/`    | Optional project-local template overrides; absent means the skill defaults are used.     | —         |
@@ -37,6 +38,7 @@ Fixed conventions:
 - **`inputs/` is import-only.** Whenever an `inputs/` directory is created, drop the import-only guardrail into it: copy `templates/inputs-agents.md` to `<workspace>/inputs/AGENTS.md`, replacing every `{workspace}` placeholder with the workspace directory name. Imported artifacts record their origin via the `source` / `source-target` provenance frontmatter (`references/frontmatter.md`).
 - **Create lazily, never overwrite.** A command creates only the directories it needs, when it needs them; it never overwrites an existing file (sequence-suffix a new one on collision). The workspace `README.md` and `inputs/AGENTS.md` are written once at scaffolding time and never overwritten thereafter.
 - **Not every workspace uses every directory.** The shape is a superset; a given document uses the subset its workflow touches.
+- **`feedback/` is forward-looking, not a journal.** It holds only residual deviations and open actions a human still needs to consider — unresolved items, assumptions to confirm, decisions pending, checks to run. It is kept current: when an item is resolved, drop or update it, don't accumulate. A chronological "what was done" record (per version/pass) is journal content — put it in `journal/`, never in `feedback/`. If in doubt: does the reader need to *act* on it? → `feedback/`. Is it a record of *past* work? → `journal/`.
 
 ## Conventions
 

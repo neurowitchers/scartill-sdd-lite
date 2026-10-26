@@ -20,7 +20,8 @@ This directory is a **document workspace** managed with the `scartill-syseng-lit
 | `task-results/` | Per-task output documents.                                                |
 | `quest/`        | Preprocessing questions with answer placeholders.                         |
 | `critiques/`    | Human-adjudicated critiques.                                              |
-| `feedback/`     | Residual deviations consolidated from critiques.                          |
+| `feedback/`     | Forward-looking residual deviations / open actions for human consideration (open items only). |
+| `journal/`      | Historical "what was done" record across versions/passes (optional).      |
 | `analysis/`     | Ad-hoc analysis and decision notes.                                       |
 | `results/`      | The consolidated document(s) and the task-to-results mapping.             |
 
