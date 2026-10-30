@@ -1,6 +1,6 @@
 # Autoflow
 
-Drive the specification-driven development pipeline end-to-end, autonomously, with no interactive pauses. Autoflow is **polymorphic**: it inspects the current session and the `docs/` tree to determine where in the workflow it should start — from a filled-in but unprocessed brainstorm, a completed brainstorm, a seed, an answered plan questionnaire, or a full spec — then runs forward from there to a working, committed implementation.
+Drive the specification-driven development pipeline end-to-end, autonomously, with no interactive pauses. Autoflow is **polymorphic**: it inspects the current session, any supplied GitHub issue, and the `docs/` tree to determine where in the workflow it should start — from a GitHub issue, a filled-in but unprocessed brainstorm, a completed brainstorm, a seed, an answered plan questionnaire, or a full spec — then runs forward from there to a working, committed implementation.
 
 This command depends on the `orca-cli` orchestration skill because it invokes
 `Handoff Critique` with the `--auto` option.
@@ -9,64 +9,91 @@ This command depends on the `orca-cli` orchestration skill because it invokes
 
 Supplied arguments: $ARGUMENTS
 
-Any supplied arguments are treated as **user refining notes** — free-form guidance that shapes planning and critique application (e.g., scope constraints, priorities, naming, things to avoid). Incorporate these notes into every planning and spec-refinement step.
+Arguments are parsed as follows:
+
+- **GitHub issue reference** — a `--issue <ref>` flag, a bare issue number (`#42` or `42`), or a GitHub issue URL (`https://github.com/<owner>/<repo>/issues/42`). When present, the referenced issue becomes the upstream entry point (see Branch 0). At most one issue reference is honored.
+- **`--gate-input`** — a flag that routes raw, unsanitized intent through `Gate Input` before planning. It applies to the two entry points that carry raw user text: a supplied GitHub issue (Branch 0) and a **hand-written seed** at the seed-only entry (Branch 3). In both cases it sanitizes noisy or agent-authored content — stripping code snippets, foreign/hallucinated architecture, and internal task breakdowns — before Autoflow continues. If the gate splits the input into **more than one** seed, Autoflow commits the seeds and then **halts** rather than planning (see the strict multiple-seed halt in Operating Constraints); the user re-runs per seed or explicitly opts to plan them as one spec via a refining note. It is a **no-op** for entry points that are already downstream of a gate: brainstorm, questionnaire, and full-spec entries (see those branches), where gating would be meaningless or destructive. A seed that was itself produced by `Gate Input` or by `Seed`/`Brainstorm` is already sanitized and is not re-gated.
+- **User refining notes** — everything else is treated as free-form guidance that shapes planning and critique application (e.g., scope constraints, priorities, naming, things to avoid). Incorporate these notes into every planning and spec-refinement step.
 
 ## State Detection
 
-Before doing anything, determine the starting state. Autoflow can enter at several points in the pipeline; the states below are ordered **earliest → latest**. Scan the `docs/` tree from the most-upstream artifact and **start at the earliest state whose artifact is present** — do not skip an unfinished upstream artifact just because a later one also exists. From the chosen entry point, Autoflow falls through each subsequent branch to a committed implementation.
+Before doing anything, determine the starting state. Autoflow can enter at several points in the pipeline; the states below are ordered **earliest → latest**. **If an issue reference was supplied in the arguments, start at state 0 (GitHub issue) regardless of what exists in `docs/`** — the explicit issue is the entry point. Otherwise, scan the `docs/` tree from the most-upstream artifact and **start at the earliest state whose artifact is present** — do not skip an unfinished upstream artifact just because a later one also exists. From the chosen entry point, Autoflow falls through each subsequent branch to a committed implementation.
 
+0. **GitHub issue supplied** — the arguments include an issue reference (`--issue <ref>`, a bare `#<n>`/`<n>`, or an issue URL). The issue plays the role of a seed. Autoflow fetches the issue and either derives a seed from it directly, or — when `--gate-input` is also supplied — routes the issue body through `Gate Input` first. (See Branch 0.)
 1. **Brainstorm inputs ready, not yet applied** — a brainstorm report exists in `docs/brainstorms/` whose frontmatter `status` is `inputs-ready` (the user has filled the Phase 2 `USER_INPUT` placeholders — the default `[REPLACE THIS TEXT WITH YOUR ANSWER / PREFERENCE]` text is gone — but Phases 3–4 are not yet complete). Autoflow resumes the brainstorm from Phase 3. (See `references/frontmatter.md`, artifact type: brainstorm.)
 2. **Brainstorm done, no seed** — a brainstorm report in `docs/brainstorms/` has frontmatter `status: recommended` (Phases 3–4 completed, `## Recommendation` populated), but no corresponding seed exists in `docs/seed/`. Autoflow derives a seed from the brainstorm, following its recommendation.
 3. **Seed(s) only** — one or more non-draft seeds (frontmatter `draft: false`) exist in `docs/seed/` (produced in this session via `Brainstorm`/`Seed` or `Gate Input` and released by the user), but no corresponding questionnaire or full spec.
 4. **Questionnaire answered, no full spec** — a plan questionnaire exists in `docs/plans/<spec-name>.questions.md` with frontmatter `status: awaiting-answers` and the user has supplied at least one answer (at least one `USER_INPUT` block no longer holds the default `[REPLACE THIS TEXT …]` placeholder), but no corresponding full spec exists yet in `docs/specs/`. Autoflow resumes planning from this questionnaire, honoring the user's filled answers and defaulting only the still-blank questions. (See `references/frontmatter.md`, artifact type: questionnaire.)
 5. **Full spec, not yet critiqued** — a full spec for the feature under discussion exists in `docs/specs/` with frontmatter `status: draft`, or a full spec was interactively planned in this session, and no critique has been applied yet.
 6. **Full spec, already critiqued** — a full spec exists in `docs/specs/` with frontmatter `status: critiqued` (or later) **and** a critique for it has already been produced and reviewed (a critique file exists in `docs/critiques/` for this spec, or the user indicates they already ran a critique handoff *without* `--auto` and reviewed/applied it themselves). In this state the critique step is **skipped** — do not run a second critique pass.
-7. **Neither** — no brainstorm, seed, questionnaire, or full spec relevant to the current work.
+7. **Neither** — no GitHub issue argument, brainstorm, seed, questionnaire, or full spec relevant to the current work.
 
-If the state is **Neither**, stop and tell the user to run `Brainstorm`, `Gate Input`, `Seed`, or `Plan Spec` first. Do not guess intent or fabricate a brainstorm, seed, questionnaire, or spec.
+If the state is **Neither**, stop and tell the user to supply a GitHub issue reference or run `Brainstorm`, `Gate Input`, `Seed`, or `Plan Spec` first. Do not guess intent or fabricate an issue, brainstorm, seed, questionnaire, or spec.
 
 If a brainstorm report exists but its frontmatter `status` is still `drafting` (its `USER_INPUT` placeholders retain the default placeholder text), treat it as **Neither**: stop and tell the user to fill in their answers in `docs/brainstorms/` first. Do not fabricate the user's answers.
 
 When uncertain whether an existing critique is current (e.g. the spec changed after the critique), prefer re-running the critique; but if the user explicitly states the critique is done, honor that and skip it.
 
-## Branch 4 — Brainstorm inputs ready, not yet applied
+## Branch 0 — GitHub issue entry point
+
+If an issue reference was supplied in the arguments, the issue is the upstream entry point and plays the role of a seed.
+
+1. **Resolve and fetch the issue.** Normalize the reference (a `--issue <ref>` flag, a bare `#<n>`/`<n>`, or a full issue URL) and fetch it with `gh` (consistent with the `gh` usage already in `Code Review` and `Finalize`):
+
+   ```bash
+   gh issue view <ref> --json number,title,body,url,labels
+   ```
+
+   If the fetch fails (issue not found, `gh` not authenticated, or no repo context), **stop** at this stage per the operating constraints and report the failure — do not fabricate issue content.
+
+2. **Derive a seed.** Pick the branch by whether `--gate-input` was supplied:
+   - **Without `--gate-input` (default):** write the issue directly to a seed at `docs/seed/<slug>.md`, where `<slug>` is derived from the issue title (lowercase, hyphenated). Capture the issue's intent, any stated interface/behavior, and examples in the seed body, following the seed shape in the skill's "Seed vs Full Specs" guidance. Because Autoflow runs autonomously, set the seed's frontmatter `draft: false` (as Branch 2 does) so Branch 3 can consume it without a manual release gate. Stamp the shared provenance block: `generated-by: "Autoflow"`, `source: <issue-url>`, `source-target: github-issue`, `generated-at: <ISO-8601 timestamp>`, and `consumed: false`. Apply the user refining notes.
+   - **With `--gate-input`:** run `Gate Input` (prompt: `sc.gate.input.md`) on the issue body to sanitize noisy or agent-authored content — stripping code snippets, foreign/hallucinated architecture, and internal task breakdowns — producing the sanitized seed(s) in `docs/seed/` plus the feedback report in `docs/seed-feedback/`. Gate Input writes seeds as `draft: true`; override each derived seed to `draft: false` (as Branch 2 does) so Branch 3 can consume it. Set `source: <issue-url>` and `source-target: github-issue` on the generated seed(s).
+3. **Commit** the derived seed(s) (and, with `--gate-input`, the feedback report). For a single seed, use a message such as `seed: derive seed from issue #<N> for <name>`; for multiple, such as `seed: derive <count> seeds from issue #<N>`.
+4. **Multiple-seed gate (strict).** If `--gate-input` split the issue into **more than one** seed, do **not** proceed to planning. The seeds are already committed (step 3), so no work is lost; **stop** here per the operating constraints and report: the issue covered multiple distinct features, Autoflow's single-track pipeline cannot plan them together without a decision, so the user should either re-run `Autoflow --issue <ref>` once per released seed, or re-run with an explicit refining note instructing Autoflow to plan the gated seeds as one Full Spec. Do not guess which resolution the user wants. (This strict halt applies only when the gate produced >1 seed; a single derived seed proceeds normally.)
+5. Proceed to **Branch 3** (single-seed case only).
+
+If a seed, questionnaire, or full spec for this issue's feature already exists in `docs/` (e.g. a prior Autoflow run already derived it), do **not** re-create it — fall through to normal `docs/`-based state detection and resume at the earliest unfinished downstream artifact instead. When the gate produced multiple seeds and some already exist, only create the missing ones; the strict multiple-seed halt in step 4 still applies.
+
+## Branch 1 — Brainstorm inputs ready, not yet applied
 
 If a brainstorm report in `docs/brainstorms/` has its `USER_INPUT` placeholders filled but has not been carried through Phases 3–4:
 
 1. **Resume the brainstorm** from Phase 3 (prompt: `sc.brainstorm.md`). Parse the user's answers inside the `USER_INPUT` tags, formulate the architectural approaches, apply the comparative analysis, and deliver the final recommendation and next steps — completing Phases 3 and 4 of the report. Apply the user refining notes. Do not pause for clarification; the user's placeholder answers are the input you act on.
 2. Write the completed `BRAINSTORM_REPORT`-style file back to `docs/brainstorms/`, advancing its frontmatter `status` to `recommended`.
 3. **Commit** the finalized brainstorm with a message such as `brainstorm: finalize analysis for <name>`.
-4. Proceed to **Branch 3**.
+4. Proceed to **Branch 2**.
 
-## Branch 3 — Brainstorm done, no seed
+## Branch 2 — Brainstorm done, no seed
 
 If a brainstorm report has a populated `## Recommendation` section but no corresponding seed exists in `docs/seed/`:
 
 1. Run `Seed` (prompt: `sc.brainstorm.to.seed.md`) to transform the brainstorm results into a seed specification, **following the brainstorm's recommended approach** unless the user refining notes specify otherwise. Capture all decisions without the implementation detail of a full spec.
-2. Write the seed to `docs/seed/`. Because Autoflow runs autonomously, set the derived seed's frontmatter `draft: false` (overriding the `Seed` prompt's default of `draft: true`) so Branch 2 can consume it without a manual release gate.
+2. Write the seed to `docs/seed/`. Because Autoflow runs autonomously, set the derived seed's frontmatter `draft: false` (overriding the `Seed` prompt's default of `draft: true`) so Branch 3 can consume it without a manual release gate.
 3. **Commit** the new seed with a message such as `seed: derive seed from brainstorm for <name>`.
-4. Proceed to **Branch 2**.
+4. Proceed to **Branch 3**.
 
-## Branch 2 — Seed(s) only
+## Branch 3 — Seed(s) only
 
 If only seed(s) are available (and no questionnaire or full spec yet):
 
+0. **Optional gate (`--gate-input`).** If `--gate-input` was supplied *and* a seed at this entry point is **hand-written** (it lacks the shared provenance block — no `generated-by` — so it was not produced by `Gate Input`, `Seed`, `Brainstorm`, or a prior Autoflow issue derivation), first run `Gate Input` (prompt: `sc.gate.input.md`) on that seed to sanitize it — stripping code snippets, foreign/hallucinated architecture, and internal task breakdowns — then continue planning from the sanitized result. Gate Input writes `draft: true`; override the sanitized seed(s) to `draft: false` (as Branch 2 does) and commit the gated seed(s) (and the feedback report) before planning — for a single seed use a message such as `seed: gate hand-written seed for <name>`, for multiple such as `seed: gate hand-written seed into <count> seeds`. **Multiple-seed gate (strict):** if the gate split the hand-written seed into **more than one** seed, do **not** proceed to planning; the seeds are already committed, so **stop** per the operating constraints and report that the input covered multiple distinct features — the user should re-run `Autoflow` once per released seed, or re-run with an explicit refining note instructing Autoflow to plan the gated seeds as one Full Spec. Do not guess the resolution. Skip this whole step when `--gate-input` is absent, or when the seed already carries a `generated-by` provenance block (it is already sanitized and must not be re-gated).
 1. Perform **non-interactive planning** to expand the seed(s) into a Full Spec, following the skill's "Seed vs Full Specs" guidance and the `Plan Spec` prompt (`sc.plan.spec.md`). Produce a concise, critique-ready blueprint: problem statement, requirements and acceptance criteria, background, proposed solution, Testing & Risk Strategy, and ordered task outlines. Apply the user refining notes. **Run Plan Spec in non-interactive mode:** write the questionnaire to `docs/plans/<spec-name>.questions.md` for traceability, then — instead of stopping at the questionnaire gate — immediately apply each question's recorded **Recommended default**, mark it `default-applied`, and record those decisions in the spec's Resolved Decisions section. Do not pause for clarification; make reasonable, well-documented assumptions.
 2. Save the Full Spec to `docs/specs/` (equivalent to `Save Spec`).
 3. **Commit** the new full spec with a message such as `spec: plan full spec for <spec-name>`.
-4. Proceed to **Branch 1**.
+4. Proceed to **Branch 5**.
 
-## Branch Questionnaire — Questionnaire answered, no full spec
+## Branch 4 — Questionnaire answered, no full spec
 
 If a plan questionnaire in `docs/plans/<spec-name>.questions.md` has frontmatter `status: awaiting-answers` and the user has supplied at least one answer (at least one `USER_INPUT` block no longer holds the default placeholder), but no full spec exists yet:
 
-1. **Resume planning from the questionnaire** via the `Plan Spec` prompt (`sc.plan.spec.md`) in **non-interactive mode**, but do **not** regenerate the questionnaire from scratch and do **not** overwrite the user's answers. Parse the answer inside each `USER_INPUT:Qn` block: honor every filled answer, and apply the recorded **Recommended default** only to questions still left at the placeholder (marking those `default-applied`). This mirrors how Branch 4 treats a brainstorm's `inputs-ready` placeholder answers as authoritative input. Apply the user refining notes.
+1. **Resume planning from the questionnaire** via the `Plan Spec` prompt (`sc.plan.spec.md`) in **non-interactive mode**, but do **not** regenerate the questionnaire from scratch and do **not** overwrite the user's answers. Parse the answer inside each `USER_INPUT:Qn` block: honor every filled answer, and apply the recorded **Recommended default** only to questions still left at the placeholder (marking those `default-applied`). This mirrors how Branch 1 treats a brainstorm's `inputs-ready` placeholder answers as authoritative input. Apply the user refining notes.
 2. Resolve the questionnaire: once every question is either answered or defaulted, set its frontmatter `status: resolved`. Expand the seed(s) and resolved answers into a Full Spec, recording every answered decision and applied default in the spec's Resolved Decisions section (traced to its question id) so the mix of user answers and defaults remains auditable.
 3. Save the Full Spec to `docs/specs/` (equivalent to `Save Spec`), consuming the seed(s) as `Plan Spec` specifies.
 4. **Commit** the new full spec with a message such as `spec: plan full spec for <spec-name>`.
-5. Proceed to **Branch 1**.
+5. Proceed to **Branch 5**.
 
-## Branch 1 — Full spec available
+## Branch 5 — Full spec available
 
 If a full spec was interactively planned or already exists:
 
@@ -91,3 +118,5 @@ If the state is **Full spec, already critiqued** (the user already ran a critiqu
 - Follow the project's git safety norms: stage specific files, do not push, do not force, and do not touch unrelated changes. Create new commits (never amend) at each commit point.
 - If a stage fails, stop at that stage, report what failed and what was committed so far, and leave the working tree in a recoverable state. Do not skip ahead past a failed stage.
 - Autoflow runs the full cycle through `Finalize`. Once complete, report every commit made and the final state so the user can review and push.
+- `--gate-input` applies only at the raw-text entry points (Branch 0 issue, Branch 3 hand-written seed). It is a silent no-op at every downstream entry point — brainstorm (Branches 1–2), questionnaire (Branch 4), and full-spec (Branch 5) — because those artifacts are already past the gate and `Gate Input`'s stripping would be meaningless or destructive there. When `--gate-input` is supplied but the resolved entry point is one of these, note that it was ignored and continue.
+- **Strict multiple-seed halt.** When `--gate-input` splits a single raw input (an issue or a hand-written seed) into **more than one** seed *in this run*, Autoflow commits all the seeds and then **stops** without planning, reporting that the input covered multiple distinct features. It never silently merges them into one spec nor silently fans out into several pipelines. The user resolves it explicitly: re-run `Autoflow` once per seed, or re-run with a refining note telling Autoflow to plan the gated seeds as one Full Spec. This halt is specific to a gate split in the current run; it does **not** apply to multiple pre-existing released seeds that the user authored and chose to plan together (the normal Branch 3 "expand the seed(s)" behavior).
