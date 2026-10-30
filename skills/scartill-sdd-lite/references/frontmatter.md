@@ -21,6 +21,7 @@ A **transport** is named by a `-target` discriminator field (`source-target` on 
 |-----------------|-----------------------------------|--------------|--------------------|
 | `local`         | repository-relative path          | import+export| yes                |
 | `gdrive`        | Google Drive file/folder URL      | import+export| yes                |
+| `github-issue`  | GitHub issue reference (URL or `#<number>`) | import only | no          |
 | `local-office`  | repository-relative path to an Office file (`.docx`, `.xlsx`, …) | import+export | yes |
 | `email`         | message reference (e.g. Message-ID, or a mailbox/thread ref) | import (feedback); export as attachment at most | no |
 
