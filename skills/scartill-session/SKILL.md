@@ -26,6 +26,12 @@ Handle the user's intent based on the arguments:
    ## Objective
    - [Define primary target]
 
+   ## Environment
+   - Shell: [e.g. PowerShell on Windows]
+   - Build: `[exact build command]`
+   - Test: `[exact test command]`
+   - Running processes: [none, or e.g. dev server in background]
+
    ## Key Changes
    - None yet.
 
@@ -33,20 +39,22 @@ Handle the user's intent based on the arguments:
    - None.
 
    ## Immediate Next Step
-   - [Next concrete action]
+   - [Next concrete action — write the literal command to run in backticks, e.g. `npm run dev`]
 
    ## Log
    - YYYY-MM-DD HH:MM: Session initialised.
    ```
 5. Report the created path and confirm it is now the active session. When `--force` superseded a prior session, name the one that was saved and note it remains `Active` and resumable.
 
+The `## Environment` section is **session-scoped** shell context — the shell in use, the exact build/test commands this session relies on, and any background processes it left running — so a resuming agent runs known-good commands instead of re-deriving them. It is *not* a substitute for project-wide guidance: stable, repo-level conventions (default shell, canonical build/test commands) belong in steering (`.kiro/steering/`) or `AGENTS.md`, which load regardless of session. Record only what is specific to or active in this session; omit the section if nothing session-specific applies.
+
 ## `save`
 
 `save` persists the current state. It works whether or not a session was explicitly `new`-ed — its job is to never lose accumulated work.
 
 1. Resolve the active session from `.context/.current_session`.
-2. **If there is no active session**, bootstrap one from the accumulated context of the ongoing CLI session — do not refuse. Derive a concise `<name>` from what the conversation has actually been doing, then create the session exactly as `new` would (slugified `.context/sessions/<name>.md` with no date in the filename, a `SESSIONS.md` `Active` row, and the `.current_session` pointer). Populate `## Objective`, `## Key Changes`, `## Blockers / Open Questions`, and `## Immediate Next Step` from the real work done so far rather than placeholders, set `**Started**` to the current timestamp, and make the first `## Log` entry record that the session was captured from an in-progress CLI session (`- YYYY-MM-DD HH:MM: Session captured from ongoing CLI session.`). Tell the user which session was created. Then continue with the reconciliation below.
-3. Reconcile the session file with the current state of the work: refresh `## Key Changes` (what was done since the last save), `## Blockers / Open Questions`, and `## Immediate Next Step`, and append a timestamped `## Log` entry (`- YYYY-MM-DD HH:MM: <summary of progress>`). (When step 2 just created the session, the initial populated content already is the reconciliation — do not duplicate a second Log entry.)
+2. **If there is no active session**, bootstrap one from the accumulated context of the ongoing CLI session — do not refuse. Derive a concise `<name>` from what the conversation has actually been doing, then create the session exactly as `new` would (slugified `.context/sessions/<name>.md` with no date in the filename, a `SESSIONS.md` `Active` row, and the `.current_session` pointer). Populate `## Objective`, `## Environment`, `## Key Changes`, `## Blockers / Open Questions`, and `## Immediate Next Step` from the real work done so far rather than placeholders — recording any exact commands actually run or needed next as literal backticked commands — set `**Started**` to the current timestamp, and make the first `## Log` entry record that the session was captured from an in-progress CLI session (`- YYYY-MM-DD HH:MM: Session captured from ongoing CLI session.`). Tell the user which session was created. Then continue with the reconciliation below.
+3. Reconcile the session file with the current state of the work: refresh `## Key Changes` (what was done since the last save), `## Environment` (if the shell, build/test commands, or running processes changed), `## Blockers / Open Questions`, and `## Immediate Next Step`, and append a timestamped `## Log` entry (`- YYYY-MM-DD HH:MM: <summary of progress>`). (When step 2 just created the session, the initial populated content already is the reconciliation — do not duplicate a second Log entry.)
 4. Leave `**Status**: Active` unchanged. Do not close the session.
 5. Report what was updated (or created).
 
@@ -82,6 +90,7 @@ Removes (deletes) the **active** session — the one in `.context/.current_sessi
 - **`.context/SESSIONS.md`** is the index of all sessions. Use a Markdown table with the columns `| Session | Started | Status |`, one row per session, the `Session` cell linking to the session file. Create it with that header on first use.
 - **`.context/.current_session`** holds exactly one line: the relative path to the active session file. It is the single source of truth for which session is active, and it is **per-developer / git-ignored** — only the session files and `SESSIONS.md` are committed. A fresh clone therefore has no active session until the user runs `save`, `new`, or `resume`; that is expected, and the commands already handle it (`resume`/`close`/`remove` stop and ask; `save` bootstraps).
 - **Never overwrite** an existing session file; on a name collision, sequence-suffix a new one.
+- **Record exact, runnable commands — never paraphrase a command.** In `## Environment`, `## Immediate Next Step`, and `## Log`, write the literal command in backticks (e.g. `` `npm run dev` ``) rather than a prose description of it ("restart the dev server"), so a resuming agent runs known-good commands instead of re-deriving shell syntax. Session shell context is session-scoped; stable, repo-wide shell/build/test guidance belongs in steering (`.kiro/steering/`) or `AGENTS.md`, not in session files.
 - **One active session at a time.** `new` refuses to switch away from an active session unless `--force` is given (which first saves the outgoing one); `resume` makes its target active; `close` leaves none active.
 
 Upon activation, remember this command and its sub-actions, but do not run anything until an explicit user request.

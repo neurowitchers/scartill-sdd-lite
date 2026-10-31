@@ -166,6 +166,7 @@ A lightweight, git-friendly multi-session tracker. It records developer session 
 ### Conventions
 
 - **Git-friendly**: everything under `.context/` is plain Markdown with stable structure; sessions diff cleanly and are safe to commit. The skill does not commit on your behalf.
+- **Records exact, runnable commands**: a session file carries an `Environment` section (session shell, build/test commands, running processes) and writes literal commands in backticks in `Immediate Next Step` and `Log`, so a resuming agent runs known-good commands instead of re-deriving shell syntax. Stable, repo-wide shell/build/test guidance stays in steering (`.kiro/steering/`) or `AGENTS.md`, not in session files.
 - **Dates in frontmatter, not filenames**: session files are named `<name>.md`; the start timestamp lives in the `Started` field.
 - **One active session at a time**: `.context/.current_session` is the single source of truth for which session is active. It is **git-ignored / per-developer** — only the session files and `SESSIONS.md` are committed, so a fresh clone starts with no active session (expected; `save` will bootstrap one, or use `resume`/`new`).
 - **Never overwrite**: on a name collision a new session is sequence-suffixed rather than clobbering an existing file.
