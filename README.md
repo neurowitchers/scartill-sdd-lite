@@ -4,10 +4,11 @@ A lightweight, Kiro-first specification-driven development (SDD) kit.
 
 This kit provides a structured, prompt-driven workflow for specification-driven development. It helps orchestrate development sessions through stages of brainstorming, spec writing, task decomposition, implementation, critique, code review, and finalization.
 
-This repository ships **two companion skills** under `skills/`:
+This repository ships **three companion skills** under `skills/`:
 
 - **`scartill-sdd-lite`** — the specification-driven development kit documented below.
 - **`scartill-syseng-lite`** — a lightweight systems-engineering companion for structured, human-adjudicated handling of document feedback, critique, and document scaffolding. See [Companion Skill: scartill-syseng-lite](#companion-skill-scartill-syseng-lite).
+- **`scartill-session`** — a git-friendly multi-session tracker that records developer session handoffs under `.context/`. See [Companion Skill: scartill-session](#companion-skill-scartill-session).
 
 ## Workflow Overview
 
@@ -140,4 +141,43 @@ skills/scartill-syseng-lite/
 ├── SKILL.md              # Companion systems-engineering skill definition
 ├── prompts/              # Ingest Feedback, Scaffold Document, Seed to Task
 └── templates/            # Default task template
+```
+
+---
+
+## Companion Skill: scartill-session
+
+A lightweight, git-friendly multi-session tracker. It records developer session handoffs as plain, diffable Markdown under `.context/`, so the "what was I doing / what's next" state travels with the repository and reviews cleanly in git. It lives at `skills/scartill-session/` and complements the other two skills: where they drive specifications and documents, this one tracks the working session around them.
+
+### Usage
+
+```
+/scartill-session [new <name> [--force] | save | resume <id> | close | remove]
+```
+
+| Sub-command | Description |
+|-------------|-------------|
+| **new `<name>` [`--force`]** | Start a new session: create `.context/sessions/<name>.md` (no date in the filename — the start date lives in frontmatter), add an `Active` row to `.context/SESSIONS.md`, and point `.context/.current_session` at it. Refuses to switch away from an already-active session unless `--force` is given, which first saves the outgoing session. |
+| **save** | Reconcile the active session (refresh Key Changes, Blockers, Immediate Next Step; append a timestamped Log entry) without closing it. If no session was ever `new`-ed, `save` **bootstraps** one from the accumulated context of the ongoing CLI session, so unplanned work is never lost. |
+| **resume `<id>`** | Make an existing session active again, brief the user from its Objective / latest Log / Blockers / Next Step, and log the resume. |
+| **close** | Final reconcile, set `Status: Closed`, mark the `SESSIONS.md` row `Closed`, and clear the active pointer. The file and its record are preserved. |
+| **remove** | Delete the active session from the working tree (with confirmation) and drop its `SESSIONS.md` row. Since `.context/` is committed, the file stays recoverable from git history — that is why there is no separate `archive` command. |
+
+### Conventions
+
+- **Git-friendly**: everything under `.context/` is plain Markdown with stable structure; sessions diff cleanly and are safe to commit. The skill does not commit on your behalf.
+- **Dates in frontmatter, not filenames**: session files are named `<name>.md`; the start timestamp lives in the `Started` field.
+- **One active session at a time**: `.context/.current_session` is the single source of truth for which session is active.
+- **Never overwrite**: on a name collision a new session is sequence-suffixed rather than clobbering an existing file.
+
+### File Structure
+
+```
+skills/scartill-session/
+└── SKILL.md              # Self-contained session-manager skill (behavior lives in the skill)
+
+.context/                 # Session artifacts (created per-project)
+├── SESSIONS.md           # Index table of all sessions (Session | Started | Status)
+├── .current_session      # One line: relative path to the active session file
+└── sessions/             # One Markdown file per session
 ```

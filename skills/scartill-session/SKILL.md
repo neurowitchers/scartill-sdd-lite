@@ -1,18 +1,19 @@
 ---
 name: scartill-session
-description: "Manages git-friendly multi-session tracking across tasks. Usage: /scartill-session [new <name> | save | resume <id> | close | remove]"
+description: "Manages git-friendly multi-session tracking across tasks. Usage: /scartill-session [new <name> [--force] | save | resume <id> | close | remove]"
 ---
 
 You are managing git-friendly developer session handoffs inside `.context/`.
 
-Read `.context/.current_session` if it exists to resolve the active session file path. If a command needs an active session and `.current_session` is missing (or points at a non-existent file), say so and ask the user to run `new <name>` or `resume <id>` first — never silently create one.
+Read `.context/.current_session` if it exists to resolve the active session file path. When a command needs an active session and none exists: `resume` and `close` and `remove` must stop and tell the user to run `new <name>` or `resume <id>` first — they never create one. `save` is the deliberate exception: with no active session it **bootstraps** one from the accumulated CLI-session context (see `save`), so an ongoing, unplanned session is never lost.
 
 All session artifacts live under `.context/` and are plain, diffable Markdown so they travel with the repository and review cleanly in git. Use the user's local timezone for timestamps: a full `YYYY-MM-DD HH:MM` in session frontmatter and Log entries. Filenames never carry a date — the date lives only in frontmatter. Treat `<id>` as the session filename (with or without the `.context/sessions/` prefix and `.md` suffix).
 
 Handle the user's intent based on the arguments:
 
-## `new <name>`
+## `new <name>` (optional `--force`)
 
+0. **Guard against clobbering an active session.** If `.context/.current_session` already points at an existing, non-closed session, stop and tell the user to `save`+`close` it (or `resume` a different one) first — do not switch away implicitly. The sole exception is `--force`: with `--force`, first reconcile the outgoing session exactly as `save` does (so its work is never lost) before proceeding. If no session is currently active, proceed directly.
 1. Generate the filename `.context/sessions/<name>.md` (slugify `<name>`: lowercase, spaces and non-alphanumerics to hyphens). The filename carries no date — the start date lives only in the frontmatter `Started` field. If the file already exists, append a short numeric suffix rather than overwriting.
 2. Write the resolved path into `.context/.current_session` (overwriting any previous pointer).
 3. Add an `Active` entry row to `.context/SESSIONS.md` (create the file with its table header if absent).
@@ -37,14 +38,17 @@ Handle the user's intent based on the arguments:
    ## Log
    - YYYY-MM-DD HH:MM: Session initialised.
    ```
-5. Report the created path and confirm it is now the active session.
+5. Report the created path and confirm it is now the active session. When `--force` superseded a prior session, name the one that was saved and note it remains `Active` and resumable.
 
 ## `save`
 
+`save` persists the current state. It works whether or not a session was explicitly `new`-ed — its job is to never lose accumulated work.
+
 1. Resolve the active session from `.context/.current_session`.
-2. Reconcile the session file with the current state of the work: refresh `## Key Changes` (what was done since the last save), `## Blockers / Open Questions`, and `## Immediate Next Step`, and append a timestamped `## Log` entry (`- YYYY-MM-DD HH:MM: <summary of progress>`).
-3. Leave `**Status**: Active` unchanged. Do not close the session.
-4. Report what was updated.
+2. **If there is no active session**, bootstrap one from the accumulated context of the ongoing CLI session — do not refuse. Derive a concise `<name>` from what the conversation has actually been doing, then create the session exactly as `new` would (slugified `.context/sessions/<name>.md` with no date in the filename, a `SESSIONS.md` `Active` row, and the `.current_session` pointer). Populate `## Objective`, `## Key Changes`, `## Blockers / Open Questions`, and `## Immediate Next Step` from the real work done so far rather than placeholders, set `**Started**` to the current timestamp, and make the first `## Log` entry record that the session was captured from an in-progress CLI session (`- YYYY-MM-DD HH:MM: Session captured from ongoing CLI session.`). Tell the user which session was created. Then continue with the reconciliation below.
+3. Reconcile the session file with the current state of the work: refresh `## Key Changes` (what was done since the last save), `## Blockers / Open Questions`, and `## Immediate Next Step`, and append a timestamped `## Log` entry (`- YYYY-MM-DD HH:MM: <summary of progress>`). (When step 2 just created the session, the initial populated content already is the reconciliation — do not duplicate a second Log entry.)
+4. Leave `**Status**: Active` unchanged. Do not close the session.
+5. Report what was updated (or created).
 
 ## `resume <id>`
 
@@ -78,6 +82,6 @@ Removes (deletes) the **active** session — the one in `.context/.current_sessi
 - **`.context/SESSIONS.md`** is the index of all sessions. Use a Markdown table with the columns `| Session | Started | Status |`, one row per session, the `Session` cell linking to the session file. Create it with that header on first use.
 - **`.context/.current_session`** holds exactly one line: the relative path to the active session file. It is the single source of truth for which session is active.
 - **Never overwrite** an existing session file; on a name collision, sequence-suffix a new one.
-- **One active session at a time.** `new` and `resume` make their target the active session; `close` leaves none active.
+- **One active session at a time.** `new` refuses to switch away from an active session unless `--force` is given (which first saves the outgoing one); `resume` makes its target active; `close` leaves none active.
 
 Upon activation, remember this command and its sub-actions, but do not run anything until an explicit user request.
