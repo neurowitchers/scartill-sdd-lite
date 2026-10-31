@@ -80,7 +80,7 @@ Removes (deletes) the **active** session — the one in `.context/.current_sessi
 
 - **Git-friendly**: everything under `.context/` is plain Markdown with stable structure, so sessions diff cleanly and are safe to commit. Do not commit on the user's behalf unless asked.
 - **`.context/SESSIONS.md`** is the index of all sessions. Use a Markdown table with the columns `| Session | Started | Status |`, one row per session, the `Session` cell linking to the session file. Create it with that header on first use.
-- **`.context/.current_session`** holds exactly one line: the relative path to the active session file. It is the single source of truth for which session is active.
+- **`.context/.current_session`** holds exactly one line: the relative path to the active session file. It is the single source of truth for which session is active, and it is **per-developer / git-ignored** — only the session files and `SESSIONS.md` are committed. A fresh clone therefore has no active session until the user runs `save`, `new`, or `resume`; that is expected, and the commands already handle it (`resume`/`close`/`remove` stop and ask; `save` bootstraps).
 - **Never overwrite** an existing session file; on a name collision, sequence-suffix a new one.
 - **One active session at a time.** `new` refuses to switch away from an active session unless `--force` is given (which first saves the outgoing one); `resume` makes its target active; `close` leaves none active.
 

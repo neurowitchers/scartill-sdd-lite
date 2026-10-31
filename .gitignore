@@ -1,1 +1,3 @@
 .aider*
+# scartill-session: per-developer active-session pointer (session files themselves stay tracked)
+.context/.current_session

@@ -167,7 +167,7 @@ A lightweight, git-friendly multi-session tracker. It records developer session 
 
 - **Git-friendly**: everything under `.context/` is plain Markdown with stable structure; sessions diff cleanly and are safe to commit. The skill does not commit on your behalf.
 - **Dates in frontmatter, not filenames**: session files are named `<name>.md`; the start timestamp lives in the `Started` field.
-- **One active session at a time**: `.context/.current_session` is the single source of truth for which session is active.
+- **One active session at a time**: `.context/.current_session` is the single source of truth for which session is active. It is **git-ignored / per-developer** — only the session files and `SESSIONS.md` are committed, so a fresh clone starts with no active session (expected; `save` will bootstrap one, or use `resume`/`new`).
 - **Never overwrite**: on a name collision a new session is sequence-suffixed rather than clobbering an existing file.
 
 ### File Structure
@@ -177,7 +177,7 @@ skills/scartill-session/
 └── SKILL.md              # Self-contained session-manager skill (behavior lives in the skill)
 
 .context/                 # Session artifacts (created per-project)
-├── SESSIONS.md           # Index table of all sessions (Session | Started | Status)
-├── .current_session      # One line: relative path to the active session file
-└── sessions/             # One Markdown file per session
+├── SESSIONS.md           # Index table of all sessions (Session | Started | Status) — committed
+├── .current_session      # One line: relative path to the active session file — git-ignored (per-developer)
+└── sessions/             # One Markdown file per session — committed
 ```
