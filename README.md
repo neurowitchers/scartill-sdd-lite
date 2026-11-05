@@ -152,23 +152,23 @@ A lightweight, git-friendly multi-session tracker. It records developer session 
 ### Usage
 
 ```
-/scartill-session [new <name> [--force] | save | resume <id> | close | remove]
+/scartill-session [new <name> | save [<id>] | resume <id> | close [<id>] | remove [<id>]]
 ```
 
 | Sub-command | Description |
 |-------------|-------------|
-| **new `<name>` [`--force`]** | Start a new session: create `.context/sessions/<name>.md` (no date in the filename — the start date lives in frontmatter), add an `Active` row to `.context/SESSIONS.md`, and point `.context/.current_session` at it. Refuses to switch away from an already-active session unless `--force` is given, which first saves the outgoing session. |
-| **save** | Reconcile the active session (refresh Key Changes, Blockers, Immediate Next Step; append a timestamped Log entry) without closing it. If no session was ever `new`-ed, `save` **bootstraps** one from the accumulated context of the ongoing CLI session, so unplanned work is never lost. |
-| **resume `<id>`** | Make an existing session active again, brief the user from its Objective / latest Log / Blockers / Next Step, and log the resume. |
-| **close** | Final reconcile, set `Status: Closed`, mark the `SESSIONS.md` row `Closed`, and clear the active pointer. The file and its record are preserved. |
-| **remove** | Delete the active session from the working tree (with confirmation) and drop its `SESSIONS.md` row. Since `.context/` is committed, the file stays recoverable from git history — that is why there is no separate `archive` command. |
+| **new `<name>`** | Start a new session: create `.context/sessions/<name>.md` (no date in the filename — the start date lives in frontmatter) and add an `Active` row to `.context/SESSIONS.md`. Multiple sessions may be `Active` at once; creating one never disturbs the others. On a name collision the file is sequence-suffixed. |
+| **save `[<id>]`** | Reconcile a session (refresh Key Changes, Blockers, Immediate Next Step; append a timestamped Log entry) without closing it. Targets the given `<id>`, else the session this conversation `new`-ed or `resume`-d. If no session is known and no `<id>` is given, `save` **bootstraps** one from the accumulated context of the ongoing CLI session, so unplanned work is never lost. |
+| **resume `<id>`** | Make an existing session active again (requires an explicit `<id>`), brief the user from its Objective / latest Log / Blockers / Next Step, log the resume, and adopt it as this conversation's current session. |
+| **close `[<id>]`** | Final reconcile, set `Status: Closed`, and mark the `SESSIONS.md` row `Closed`. Targets the given `<id>`, else this conversation's current session. The file and its record are preserved. |
+| **remove `[<id>]`** | Delete a session from the working tree (with confirmation) and drop its `SESSIONS.md` row. Targets the given `<id>`, else this conversation's current session. Since `.context/` is committed, the file stays recoverable from git history — that is why there is no separate `archive` command. |
 
 ### Conventions
 
 - **Git-friendly**: everything under `.context/` is plain Markdown with stable structure; sessions diff cleanly and are safe to commit. The skill does not commit on your behalf.
 - **Records exact, runnable commands**: a session file carries an `Environment` section (session shell, build/test commands, running processes) and writes literal commands in backticks in `Immediate Next Step` and `Log`, so a resuming agent runs known-good commands instead of re-deriving shell syntax. Stable, repo-wide shell/build/test guidance stays in steering (`.kiro/steering/`) or `AGENTS.md`, not in session files.
 - **Dates in frontmatter, not filenames**: session files are named `<name>.md`; the start timestamp lives in the `Started` field.
-- **One active session at a time**: `.context/.current_session` is the single source of truth for which session is active. It is **git-ignored / per-developer** — only the session files and `SESSIONS.md` are committed, so a fresh clone starts with no active session (expected; `save` will bootstrap one, or use `resume`/`new`).
+- **No active-session pointer**: there is no `.current_session` file. "Current session" is scoped to the running conversation (whatever it `new`-ed or `resume`-d), not shared state on disk, so it can never mislead another agent or human sharing the worktree. Multiple sessions may be `Active` in `SESSIONS.md` at once. To remember a working session id across conversations, record it in `AGENTS.md` or steering yourself.
 - **Never overwrite**: on a name collision a new session is sequence-suffixed rather than clobbering an existing file.
 
 ### File Structure
@@ -179,6 +179,5 @@ skills/scartill-session/
 
 .context/                 # Session artifacts (created per-project)
 ├── SESSIONS.md           # Index table of all sessions (Session | Started | Status) — committed
-├── .current_session      # One line: relative path to the active session file — git-ignored (per-developer)
 └── sessions/             # One Markdown file per session — committed
 ```
