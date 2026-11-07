@@ -1,6 +1,6 @@
 # Autoflow
 
-Drive the specification-driven development pipeline end-to-end, autonomously, with no interactive pauses. Autoflow is **polymorphic**: it inspects the current session, any supplied GitHub issue, and the `docs/` tree to determine where in the workflow it should start — from a GitHub issue, a filled-in but unprocessed brainstorm, a completed brainstorm, a seed, an answered plan questionnaire, or a full spec — then runs forward from there to a working, committed implementation.
+Drive the specification-driven development pipeline end-to-end, autonomously, with no interactive pauses for the user. Autoflow does not stop to ask the user for confirmation between stages; at each adversarial handoff it instead yields its turn to the Orca worker and resumes automatically when Orca wakes it with the worker's `worker_done` (see the handoff prompts). Autoflow is **polymorphic**: it inspects the current session, any supplied GitHub issue, and the `docs/` tree to determine where in the workflow it should start — from a GitHub issue, a filled-in but unprocessed brainstorm, a completed brainstorm, a seed, an answered plan questionnaire, or a full spec — then runs forward from there to a working, committed implementation.
 
 This command depends on the `orca-cli` orchestration skill because it invokes
 `Handoff Critique` with the `--auto` option.
@@ -114,7 +114,7 @@ If the state is **Full spec, already critiqued** (the user already ran a critiqu
 
 ## Operating Constraints
 
-- Run autonomously end-to-end. Do not pause between stages for confirmation.
+- Run autonomously end-to-end. Do not pause between stages to ask the user for confirmation. The adversarial handoffs (`Handoff Critique`, `Handoff Code Review`) are **not** user pauses: Autoflow ends its turn after launching each Orca worker and resumes automatically when Orca wakes it with the worker's `worker_done`. Those workers are launched non-interactively (`--mode auto --dangerously-skip-permissions`) precisely so they never raise a confirmation prompt mid-run.
 - Follow the project's git safety norms: stage specific files, do not push, do not force, and do not touch unrelated changes. Create new commits (never amend) at each commit point.
 - If a stage fails, stop at that stage, report what failed and what was committed so far, and leave the working tree in a recoverable state. Do not skip ahead past a failed stage.
 - Autoflow runs the full cycle through `Finalize`. Once complete, report every commit made and the final state so the user can review and push.
