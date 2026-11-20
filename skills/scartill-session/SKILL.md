@@ -1,6 +1,6 @@
 ---
 name: scartill-session
-description: "Manages git-friendly multi-session tracking across tasks. Usage: /scartill-session [new <name> | save [<id>] | resume <id> | close [<id>] | remove [<id>]]"
+description: "Manages git-friendly multi-session tracking across tasks. Usage: /scartill-session [list | new <name> | save [<id>] | resume <id> | close [<id>] | remove [<id>]]"
 ---
 
 You are managing git-friendly developer session handoffs inside `.context/`.
@@ -12,6 +12,14 @@ Commands that act on an existing session take an explicit `<id>`. When `<id>` is
 All session artifacts live under `.context/` and are plain, diffable Markdown so they travel with the repository and review cleanly in git. Use the user's local timezone for timestamps: a full `YYYY-MM-DD HH:MM` in session frontmatter and Log entries. Filenames never carry a date — the date lives only in frontmatter. Treat `<id>` as the session filename (with or without the `.context/sessions/` prefix and `.md` suffix).
 
 Handle the user's intent based on the arguments:
+
+## `list`
+
+Read-only. Lists the known sessions.
+
+1. Read `.context/SESSIONS.md`. If it does not exist, report that there are no sessions yet and stop (do not create it).
+2. Show the table (Session, Started, Status) as-is, with `Active` sessions first. Optionally add each session's Objective (first line) from its file.
+3. Do not create, modify, or log to any file, and do not change the conversation's current session.
 
 ## `new <name>`
 
