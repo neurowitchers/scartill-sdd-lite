@@ -1,9 +1,10 @@
 # Autoflow
 
-Drive the specification-driven development pipeline end-to-end, autonomously, with no interactive pauses for the user. Autoflow does not stop to ask the user for confirmation between stages; at each adversarial handoff it instead yields its turn to the Orca worker and resumes automatically when Orca wakes it with the worker's `worker_done` (see the handoff prompts). Autoflow is **polymorphic**: it inspects the current session, any supplied GitHub issue, and the `docs/` tree to determine where in the workflow it should start — from a GitHub issue, a filled-in but unprocessed brainstorm, a completed brainstorm, a seed, an answered plan questionnaire, or a full spec — then runs forward from there to a working, committed implementation.
+Drive the specification-driven development pipeline end-to-end, autonomously, with no interactive pauses for the user. Autoflow does not stop to ask the user for confirmation between stages; each adversarial handoff is a direct, synchronous subagent call made by the lead agent (see the handoff prompts), so there is nothing to wait for or resume from. Autoflow is **polymorphic**: it inspects the current session, any supplied GitHub issue, and the `docs/` tree to determine where in the workflow it should start — from a GitHub issue, a filled-in but unprocessed brainstorm, a completed brainstorm, a seed, an answered plan questionnaire, or a full spec — then runs forward from there to a working, committed implementation.
 
-This command depends on the `orca-cli` orchestration skill because it invokes
-`Handoff Critique` with the `--auto` option.
+Autoflow invokes `Handoff Critique` and `Handoff Code Review` with `--auto`, which call the
+adversarial agent directly as a subagent. It therefore does **not** require Orca or an extra
+terminal.
 
 ## Command Arguments
 
@@ -98,7 +99,7 @@ If a plan questionnaire in `docs/plans/<spec-name>.questions.md` has frontmatter
 If a full spec was interactively planned or already exists:
 
 1. Ensure the spec is saved to `docs/specs/` (call `Save Spec` if it has not been saved).
-2. **Specification-level critique (skip if already critiqued).** If the spec has **not** yet been critiqued, run `Handoff Critique --auto` (prompt: `sc.handoff.critique.md`) — this hands the spec to an adversarial agent via Orca and automatically applies **only** 🎯 Must-Address findings to the spec once ready, preserving 💡 Recommendations and 🤔 Questions in the report for later human review (and for `Finalize` to capture) — then **commit** the critiqued spec with a message such as `spec: apply critique for <spec-name>`.
+2. **Specification-level critique (skip if already critiqued).** If the spec has **not** yet been critiqued, run `Handoff Critique --auto` (prompt: `sc.handoff.critique.md`) — this hands the spec to an adversarial subagent and automatically applies **only** 🎯 Must-Address findings to the spec once ready, preserving 💡 Recommendations and 🤔 Questions in the report for later human review (and for `Finalize` to capture) — then **commit** the critiqued spec with a message such as `spec: apply critique for <spec-name>`.
 
 If the state is **Full spec, already critiqued** (the user already ran a critique handoff without `--auto` and reviewed it, or a current critique already exists in `docs/critiques/`), **skip** this step and proceed directly to Split Tasks. If the user already applied and committed the critique, there is nothing to commit here.
 3. Run the **mandatory** `Split Tasks` command (prompt: `sc.split.tasks.md`) to generate the authoritative execution-detail set in `docs/tasks/<spec-name>/`, including `summary.md`. Do not proceed to implementation from the Full Spec alone.
@@ -107,14 +108,14 @@ If the state is **Full spec, already critiqued** (the user already ran a critiqu
 6. **Commit** the task-level critique report and any applied planning-artifact fixes with a message such as `tasks: apply task-level critique for <spec-name>`. If a current task-level critique has already been auto-applied to the latest task set, do not rerun it; commit only if the existing report or artifacts remain uncommitted.
 7. Run `Implement` (prompt: `sc.implement.tasks.md`) to execute the critiqued task files via subagents, using the `summary.md` for parallelization guidance.
 8. **Commit** the implementation with a message such as `feat: implement <spec-name>`.
-9. Run `Handoff Code Review --auto` (prompt: `sc.handoff.code.review.md`). This hands the implemented changes to an adversarial agent via Orca and applies the actionable (`CRITICAL`/`HIGH`) findings automatically once the review is ready.
+9. Run `Handoff Code Review --auto` (prompt: `sc.handoff.code.review.md`). This hands the implemented changes to an adversarial subagent and applies the actionable (`CRITICAL`/`HIGH`) findings automatically once the review is ready.
 10. **Commit** the review fixes with a message such as `fix: apply code review for <spec-name>`. (Skip this commit if the review produced no changes.)
 11. Run `Finalize` (prompt: `sc.finalize.md`) to update `README.md`/docs, capture deferred items to `docs/feedback/`, and post product-manager guidance to the PR if available.
 12. **Commit** the finalization with a message such as `docs: finalize <spec-name>`. (Skip this commit if there was nothing to update.)
 
 ## Operating Constraints
 
-- Run autonomously end-to-end. Do not pause between stages to ask the user for confirmation. The adversarial handoffs (`Handoff Critique`, `Handoff Code Review`) are **not** user pauses: Autoflow ends its turn after launching each Orca worker and resumes automatically when Orca wakes it with the worker's `worker_done`. Those workers are launched non-interactively (`--mode auto --dangerously-skip-permissions`) precisely so they never raise a confirmation prompt mid-run.
+- Run autonomously end-to-end. Do not pause between stages to ask the user for confirmation. The adversarial handoffs (`Handoff Critique`, `Handoff Code Review`) are **not** user pauses: with `--auto` the lead agent calls the adversarial agent directly as a synchronous subagent and continues when it returns.
 - Follow the project's git safety norms: stage specific files, do not push, do not force, and do not touch unrelated changes. Create new commits (never amend) at each commit point.
 - If a stage fails, stop at that stage, report what failed and what was committed so far, and leave the working tree in a recoverable state. Do not skip ahead past a failed stage.
 - Autoflow runs the full cycle through `Finalize`. Once complete, report every commit made and the final state so the user can review and push.

@@ -17,12 +17,12 @@ description: "Lightweight Kiro-first specification driven development kit"
 - `Seed` - convert final brainstorming results to a seed (prompt: `sc.brainstorm.to.seed.md`)
 - `Gate Input` - sanitize raw input, extract clean seed specs, and generate a PM feedback report (prompt: `sc.gate.input.md`, input document path as parameter)
 
-## Advanced Commands (Orca-dependent)
+## Advanced Commands (adversarial handoff)
 
-These commands require the `/orchestration` skill and an available adversarial agent.
+These commands require an available adversarial agent. With `--auto` it is called directly as a subagent; without `--auto` the `/orchestration` skill (Orca) runs it in a separate terminal.
 
-- `Handoff Critique` - hand off a critique to an adversarial agent (Antigravity) in a new Orca terminal, then apply the resulting report (prompt: `sc.handoff.critique.md`, allowed arguments: `--auto`, `--task-level`). The default is the manual flow's specification-level pass. With `--auto`, only 🎯 Must-Address findings are applied automatically (💡 Recommendations and 🤔 Questions are preserved for human review), consistently across the specification-level and task-level passes. `--task-level` reviews the saved spec plus `docs/tasks/<spec-name>/` and is reserved for Autoflow's second pass.
-- `Handoff Code Review` - hand off code review to an adversarial agent (Antigravity) in a new Orca terminal, then act on the result (prompt: `sc.handoff.code.review.md`, allowed argument: `--auto`)
+- `Handoff Critique` - hand off a critique to an adversarial agent (Antigravity) (direct subagent with `--auto`, Orca terminal otherwise), then apply the resulting report (prompt: `sc.handoff.critique.md`, allowed arguments: `--auto`, `--task-level`). The default is the manual flow's specification-level pass. With `--auto`, only 🎯 Must-Address findings are applied automatically (💡 Recommendations and 🤔 Questions are preserved for human review), consistently across the specification-level and task-level passes. `--task-level` reviews the saved spec plus `docs/tasks/<spec-name>/` and is reserved for Autoflow's second pass.
+- `Handoff Code Review` - hand off code review to an adversarial agent (Antigravity) (direct subagent with `--auto`, Orca terminal otherwise), then act on the result (prompt: `sc.handoff.code.review.md`, allowed argument: `--auto`)
 - `Autoflow` - polymorphically drive the pipeline end-to-end: optionally start from a GitHub issue (issue → seed), add `--gate-input` to sanitize raw-text entry points via `Gate Input` (a supplied issue or a hand-written seed; a no-op on brainstorm/questionnaire/spec entries) — if the gate splits the input into multiple seeds, Autoflow commits them and halts for the user to re-run per seed or explicitly plan them as one spec — finalize brainstorms and/or derive a seed if needed, plan and handoff-critique the concise Full Spec (`--auto`), **mandatorily split tasks**, run an Autoflow-only task-level handoff critique (`--task-level --auto`), implement, handoff-code-review (`--auto`), and finalize. It commits at each stage (prompt: `sc.autoflow.md`, arguments: an optional GitHub issue reference, an optional `--gate-input` flag, and free-form user refining notes)
 
 All prompts reside in `<skill-dir>/prompts/`.

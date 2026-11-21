@@ -1,19 +1,22 @@
 # Hand Off Critique to Adversarial Agent
 
-Use the Orca `/orchestration` skill to start a supervised worker running Antigravity and have
-it execute the Scartill SDD Lite `Critique` command against the requested scope. The agent
-must write a new report in `docs/critiques/` and use relative paths only.
+Hand the critique to an adversarial agent (Antigravity by default) and have it execute the
+Scartill SDD Lite `Critique` command against the requested scope. The agent must write a new
+report in `docs/critiques/` and use relative paths only.
 
-Launch the worker non-interactively: pass `--agent antigravity` and the launch arguments
-`--mode auto --dangerously-skip-permissions` so the worker can run its `orca orchestration`
-reporting calls without raising an interactive permission prompt. Without this, the worker's
-completion signal stalls on a confirmation prompt and breaks an autonomous (`--auto`) run.
+**Dispatch mode depends on `--auto`:**
 
-The worker is a supervised Orca dispatch: its prompt carries Task and Dispatch IDs, so it is
-obligated to report back. Instruct it in the task spec to do its job, write the report, and
-**settle with exactly one `worker_done` signal** (`--outcome succeeded` when the report is
-written, `--outcome failed` otherwise) — and to **not** use `ask` or send any free-form
-messages back. One expected completion signal, nothing else.
+- **With `--auto` (direct subagent):** do **not** use Orca and do not open a terminal. Call the
+  adversarial agent directly as a synchronous subagent through the host's subagent mechanism
+  (for example `invoke_sub_agent`), with a fresh context. If the host cannot run subagents, run
+  the adversarial CLI (`agy`) synchronously in the foreground instead. The call blocks until the
+  report is written, so there is no yielding, waking, polling, or `worker_done` signal.
+- **Without `--auto` (Orca):** use the Orca `/orchestration` skill to start a supervised worker
+  running Antigravity in a separate terminal, so the user can watch it and confirm when it is
+  done. Pass `--agent antigravity`, launched with `--mode auto --dangerously-skip-permissions`,
+  and instruct it to **settle with exactly one `worker_done` signal** (`--outcome succeeded`
+  when the report is written, `--outcome failed` otherwise), with no `ask` and no free-form
+  messages.
 
 ## Command Arguments
 
@@ -58,17 +61,17 @@ parallel-work risks. Findings must name the affected spec section and/or task fi
 1. **Locate artifacts.** Find the latest relevant saved spec. For task-level mode, validate its
    matching task directory and `summary.md` exist. If a spec has not been saved, call `Save
    Spec` before handing off.
-2. **Launch the worker via Orca.** Start the Antigravity worker with `worker-start`, passing
-   `--mode auto --dangerously-skip-permissions`. In the task spec, state the pass scope, spec
-   path, and (for task-level mode) task-directory path; tell it to create a new critique file
-   rather than overwrite prior reports, and to settle with a single `worker_done` (no `ask`,
-   no free-form messages). If this is not the first critique pass, pass that fact along so the
+2. **Dispatch the adversarial agent.** In the task prompt, state the pass scope, spec path, and
+   (for task-level mode) task-directory path; tell it to create a new critique file rather than
+   overwrite prior reports. If this is not the first critique pass, pass that fact along so the
    report is clearly distinguishable.
-3. **Yield and resume, or ask.** With `--auto`, **end your turn** after launching — do not poll
-   or watch. Orca wakes you when the worker settles with `worker_done`; only then locate the
-   latest corresponding report in `docs/critiques/` and continue, without asking for
-   confirmation. Without `--auto`, ask the user whether the critique is ready and proceed when
-   they confirm.
+   - With `--auto`: invoke it as a direct synchronous subagent (see above).
+   - Without `--auto`: start the Orca worker with `worker-start` (flags and single
+     `worker_done` rule above).
+3. **Collect the result, or ask.** With `--auto`, the subagent call returns when the report is
+   written; if it fails or returns no report, stop and report the failure. Locate the latest
+   corresponding report in `docs/critiques/` and continue without asking for confirmation.
+   Without `--auto`, ask the user whether the critique is ready and proceed when they confirm.
 4. **Apply findings.**
    - **Specification-level mode:** follow the critique report's remediation flow. Without
      `--auto`, obtain user approval (apply 🎯 Must-Address and 💡 Recommendations as the user
@@ -81,9 +84,9 @@ parallel-work risks. Findings must name the affected spec section and/or task fi
      architecture, acceptance criteria, or the Testing & Risk Strategy. Leave 💡
      Recommendations and 🤔 Questions recorded in the critique report for human review.
    - **Task-level mode without `--auto`:** present the findings and ask the user what to apply.
-5. **Close handoff.** A supervised worker settles and releases itself on `worker_done`; it
-   does not need to be told to exit. After the critique has been applied or recorded, if the
-   worker is still open (e.g. it was kept open), release it via Orca.
+5. **Close handoff.** A direct subagent ends when it returns. An Orca worker (non-`--auto`)
+   settles and releases itself on `worker_done`; if it is still open after the critique has been
+   applied or recorded, release it via Orca.
 
 ## Operating Constraints
 
