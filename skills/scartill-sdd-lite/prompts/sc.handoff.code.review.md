@@ -5,7 +5,7 @@ Hand the code review to an adversarial agent (Antigravity by default) and ask it
 **Dispatch mode depends on `--auto`:**
 
 - **With `--auto` (direct subagent):** do **not** use Orca and do not open a terminal. Call the adversarial agent directly as a synchronous subagent through the host's subagent mechanism (for example `invoke_sub_agent`), with a fresh context. If the host cannot run subagents, run the adversarial CLI (`agy`) synchronously in the foreground instead. The call blocks until the review is written, so there is no yielding, polling, or `worker_done` signal. If it fails or produces no review, stop and report the failure.
-- **Without `--auto` (Orca):** use the Orca `/orchestration` skill to start a supervised worker running Antigravity (`--agent antigravity`, launched with `--mode auto --dangerously-skip-permissions`). Instruct it to **settle with exactly one `worker_done` signal** (`--outcome succeeded` when the report is written, `--outcome failed` otherwise), with no `ask` and no free-form messages. Then ask the user whether the review is ready.
+- **Without `--auto` (Orca, interactive):** use the Orca `/orchestration` skill to start a supervised worker running Antigravity (`--agent antigravity`) in a separate terminal. This mode exists **so the user can watch the reviewer and interact with it** (question findings, push back, request changes) **before any fix is applied**; do not collapse it into the direct-subagent path. Do not pass `--dangerously-skip-permissions`, and do not forbid `ask` or free-form messages. The worker may stay open for discussion. Tell the user where to interact with it, then ask the user whether the review is ready; the user, not a `worker_done` signal, decides.
 
 If the user mentions that this is not the first review pass (e.g. "pass 2"), pass that note along to Antigravity so it produces a new review file rather than reusing a prior one.
 
@@ -13,7 +13,7 @@ When the review is ready, find the corresponding review report in `./docs/codere
 
 Acting on the review means addressing the actionable findings — prioritize `CRITICAL` and `HIGH` items, then `MEDIUM`. For each fix applied, keep the change minimal and aligned with project conventions. Leave `LOW` style nits unless trivially safe.
 
-A direct subagent ends when it returns. An Orca worker (non-`--auto`) releases itself on `worker_done`; after the review has been acted upon, release it via Orca only if it was kept open.
+A direct subagent ends when it returns. An interactive Orca worker (non-`--auto`) may still be open; after the review has been acted upon, release it via Orca.
 
 ## Note on the Flow
 
